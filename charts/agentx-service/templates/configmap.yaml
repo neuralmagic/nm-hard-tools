@@ -1,0 +1,19 @@
+{{- $runner := include "agentx.digestImage" (list "runnerImage" .Values.runnerImage) -}}
+{{- $config := deepCopy (required "operatorConfig is required" .Values.operatorConfig) -}}
+{{- $_ := set $config "service_namespace" .Release.Namespace -}}
+{{- $_ := set $config "aiperf_image" $runner -}}
+{{- $queues := get $config "queues" | default dict -}}
+{{- range $name, $queue := $queues -}}
+{{- $_ := set $queue "namespace" $.Release.Namespace -}}
+{{- end -}}
+{{- $_ := set $config "queues" $queues -}}
+{{- $storage := get $config "storage" | default dict -}}
+{{- $_ := set $storage "pvc_name" (required "storage.resultsClaim is required" .Values.storage.resultsClaim) -}}
+{{- $_ := set $storage "mount_path" .Values.storage.mountPath -}}
+{{- if not (hasKey $storage "runs_subdirectory") }}{{- $_ = set $storage "runs_subdirectory" "runs" -}}{{- end -}}
+{{- $_ := set $config "storage" $storage -}}
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: agentx-service-config}
+data:
+  operator-config.json: {{ $config | toJson | quote }}

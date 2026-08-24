@@ -1,0 +1,86 @@
+{{- $image := include "nyann.digestImage" (list "image" .Values.image) -}}
+{{- $runner := include "nyann.digestImage" (list "runnerImage" .Values.runnerImage) -}}
+{{- $auth := required "auth.existingSecret is required" .Values.auth.existingSecret -}}
+{{- $results := required "storage.resultsClaim is required" .Values.storage.resultsClaim -}}
+{{- $datasets := required "storage.datasetClaim is required" .Values.storage.datasetClaim -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyann-bench-api
+  labels: {app.kubernetes.io/name: nyann-bench-api}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app.kubernetes.io/name: nyann-bench-api}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: nyann-bench-api}
+      annotations:
+        checksum/targets: {{ .Values.targets | toJson | sha256sum }}
+    spec:
+      serviceAccountName: nyann-bench-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile: {type: RuntimeDefault}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: api
+          image: {{ $image | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["/nyann-bench-api"]
+          args:
+            - {{ printf "-namespace=%s" .Release.Namespace | quote }}
+            - -token-file=/var/run/secrets/nyann-bench-api/token
+            - -targets-file=/etc/nyann-bench-policy/targets.json
+            - {{ printf "-allowed-target-hosts=%s" (join "," .Values.policy.allowedTargetHosts) | quote }}
+            - {{ printf "-allowed-target-suffixes=%s" (join "," .Values.policy.allowedTargetSuffixes) | quote }}
+            - {{ printf "-allowed-pvcs=%s,%s" $results $datasets | quote }}
+            - {{ printf "-result-pvc=%s" $results | quote }}
+            - {{ printf "-result-root=%s" .Values.storage.resultsRoot | quote }}
+            - {{ printf "-dataset-pvc=%s" $datasets | quote }}
+            - {{ printf "-dataset-root=%s" .Values.storage.datasetRoot | quote }}
+            - {{ printf "-allowed-platforms=%s" (join "," .Values.policy.allowedPlatforms) | quote }}
+            - {{ printf "-runner-image=%s" $runner | quote }}
+            - {{ printf "-max-workers=%v" .Values.policy.maxWorkers | quote }}
+            - {{ printf "-max-cpu=%s" .Values.policy.maxCPU | quote }}
+            - {{ printf "-max-memory=%s" .Values.policy.maxMemory | quote }}
+            - {{ printf "-default-active-deadline=%s" .Values.policy.defaultActiveDeadline | quote }}
+            - {{ printf "-max-active-deadline=%s" .Values.policy.maxActiveDeadline | quote }}
+            - {{ printf "-default-retention-ttl=%s" .Values.policy.defaultRetentionTTL | quote }}
+            - {{ printf "-max-retention-ttl=%s" .Values.policy.maxRetentionTTL | quote }}
+            - {{ printf "-max-artifact-files=%v" .Values.policy.maxArtifactFiles | quote }}
+            - {{ printf "-max-artifact-bytes=%v" .Values.policy.maxArtifactBytes | quote }}
+            - {{ printf "-max-report-records=%v" .Values.policy.maxReportRecords | quote }}
+            - {{ printf "-max-latency-samples=%v" .Values.policy.maxLatencySamples | quote }}
+            - {{ printf "-max-indexed-runs=%v" .Values.policy.maxIndexedRuns | quote }}
+            - {{ printf "-artifact-processing-timeout=%s" .Values.policy.artifactProcessingTimeout | quote }}
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /readyz, port: http}}
+          livenessProbe: {httpGet: {path: /healthz, port: http}}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - {name: auth, mountPath: /var/run/secrets/nyann-bench-api, readOnly: true}
+            - {name: policy, mountPath: /etc/nyann-bench-policy, readOnly: true}
+            - {name: results, mountPath: {{ .Values.storage.resultsRoot | quote }}}
+      volumes:
+        - name: auth
+          secret:
+            secretName: {{ $auth | quote }}
+            items: [{key: {{ .Values.auth.secretKey | quote }}, path: token}]
+        - name: policy
+          configMap: {name: nyann-bench-api-policy}
+        - name: results
+          persistentVolumeClaim: {claimName: {{ $results | quote }}}

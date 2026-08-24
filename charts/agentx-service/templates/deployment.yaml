@@ -1,0 +1,63 @@
+{{- $image := include "agentx.digestImage" (list "image" .Values.image) -}}
+{{- $auth := required "auth.existingSecret is required" .Values.auth.existingSecret -}}
+{{- $claim := required "storage.resultsClaim is required" .Values.storage.resultsClaim -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentx-service
+  labels: {app.kubernetes.io/name: agentx-service}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app.kubernetes.io/name: agentx-service}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: agentx-service}
+      annotations:
+        checksum/operator-config: {{ dict "operatorConfig" .Values.operatorConfig "runnerImage" .Values.runnerImage "namespace" .Release.Namespace "resultsClaim" .Values.storage.resultsClaim "mountPath" .Values.storage.mountPath | toJson | sha256sum }}
+    spec:
+      serviceAccountName: agentx-service
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: service
+          image: {{ $image | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["agentx-service"]
+          args: ["serve"]
+          env:
+            - {name: AGENTX_OPERATOR_CONFIG, value: /etc/agentx/operator-config.json}
+            - {name: HOME, value: /tmp}
+            - name: AGENTX_API_TOKEN
+              valueFrom:
+                secretKeyRef: {name: {{ $auth | quote }}, key: {{ .Values.auth.secretKey | quote }}}
+          ports: [{name: http, containerPort: 8080}]
+          readinessProbe: {httpGet: {path: /readyz, port: http}}
+          livenessProbe: {httpGet: {path: /healthz, port: http}}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - {name: config, mountPath: /etc/agentx, readOnly: true}
+            - {name: artifacts, mountPath: {{ .Values.storage.mountPath | quote }}}
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: config
+          configMap: {name: agentx-service-config}
+        - name: artifacts
+          persistentVolumeClaim: {claimName: {{ $claim | quote }}}
+        - name: temporary
+          emptyDir: {sizeLimit: 64Mi}

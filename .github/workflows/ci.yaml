@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+      - uses: azure/setup-helm@v5.0.1
+      - run: uv run --extra test ruff format --check src tests
+      - run: uv run --extra test ruff check src tests
+      - run: uv run --extra test --extra lm-eval-service pytest
+      - name: Render charts
+        run: |
+          helm template forward-pass charts/forward-pass-benchmark \
+            --set image=example/forward:dev \
+            --set mcpAdapter.image=example/adapter:dev \
+            --set workerPlugin.image=example/plugin:dev \
+            --set workerPlugin.bundleSha256=67ea3261d77f81504f8820dbb81c0bb62727e2942f8cc0b0545448388df158a7
+          helm template lm-eval charts/lm-eval-service \
+            --set image.repository=example/lm-eval \
+            --set image.digest=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set auth.existingSecret=lm-eval-token
+          helm template nyann charts/nyann-bench \
+            --set image=example/nyann@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set runnerImage=example/nyann@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set auth.existingSecret=nyann-token \
+            --set storage.resultsClaim=results \
+            --set storage.datasetClaim=datasets
+          helm template agentx charts/agentx-service \
+            --set image=example/agentx@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set runnerImage=example/runner@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+            --set auth.existingSecret=agentx-token \
+            --set storage.resultsClaim=results

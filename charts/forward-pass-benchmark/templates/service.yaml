@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-forward-bench
+  labels: {app.kubernetes.io/name: vllm-forward-bench}
+spec:
+  selector: {app.kubernetes.io/name: vllm-forward-bench}
+  ports:
+    - {name: http, port: {{ .Values.service.port }}, targetPort: http}
+    - {name: mcp, port: {{ .Values.mcpAdapter.port }}, targetPort: mcp}

@@ -1,0 +1,73 @@
+{{- $image := required "image is required" .Values.image -}}
+{{- $mcpImage := required "mcpAdapter.image is required" .Values.mcpAdapter.image -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-forward-bench
+  labels: {app.kubernetes.io/name: vllm-forward-bench}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: vllm-forward-bench}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: vllm-forward-bench}
+    spec:
+      serviceAccountName: vllm-forward-bench-controller
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: controller
+          image: {{ $image | quote }}
+          imagePullPolicy: {{ if contains "@sha256:" .Values.image }}IfNotPresent{{ else }}Always{{ end }}
+          ports: [{name: http, containerPort: 8000}]
+          env:
+            - {name: POD_NAMESPACE, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+            - {name: BENCH_DATA_DIR, value: /results}
+            - {name: BENCH_RESULTS_CLAIM, value: {{ .Values.storage.resultsClaim | quote }}}
+            - {name: BENCH_MODEL_CACHE_CLAIM, value: {{ .Values.storage.modelCacheClaim | quote }}}
+            {{- with .Values.storage.modelCacheVolume }}
+            - {name: BENCH_MODEL_CACHE_VOLUME_JSON, value: {{ toJson . | quote }}}
+            {{- end }}
+            - {name: BENCH_WORKER_SERVICE_ACCOUNT, value: {{ .Values.worker.serviceAccount | quote }}}
+            - {name: BENCH_IMAGE_PULL_SECRETS, value: {{ join "," .Values.worker.imagePullSecrets | quote }}}
+            - {name: BENCH_ALLOWED_IMAGE_PREFIXES, value: {{ .Values.worker.allowedImagePrefixes | quote }}}
+            - {name: BENCH_ALLOWED_QUEUES, value: {{ default .Values.vdp.localQueue .Values.worker.allowedQueues | quote }}}
+            - {name: BENCH_ALLOW_TRUST_REMOTE_CODE, value: {{ ternary "1" "0" .Values.worker.allowTrustRemoteCode | quote }}}
+            - {name: BENCH_HF_TOKEN_SECRET_NAME, value: {{ .Values.worker.hfTokenSecret.name | quote }}}
+            - {name: BENCH_HF_TOKEN_SECRET_KEY, value: {{ .Values.worker.hfTokenSecret.key | quote }}}
+            # The worker is a runtime-independent bundle the service injects
+            # into whichever vLLM image a specification names, so the two move
+            # together and the service refuses to start with only one set.
+            # The service validates the injected bundle against this digest and
+            # refuses to start unless both are set, so neither may be empty.
+            - {name: BENCH_WORKER_PLUGIN_IMAGE, value: {{ required "workerPlugin.image is required" .Values.workerPlugin.image | quote }}}
+            - {name: BENCH_WORKER_BUNDLE_SHA256, value: {{ required "workerPlugin.bundleSha256 is required" .Values.workerPlugin.bundleSha256 | quote }}}
+          readinessProbe: {httpGet: {path: /healthz, port: http}}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: results, mountPath: /results}
+
+        - name: mcp-adapter
+          image: {{ $mcpImage | quote }}
+          imagePullPolicy: {{ if contains "@sha256:" .Values.mcpAdapter.image }}IfNotPresent{{ else }}Always{{ end }}
+          command: ["inference-hard-forward-benchmark-mcp"]
+          ports: [{name: mcp, containerPort: {{ .Values.mcpAdapter.port }}}]
+          env:
+            - {name: INFERENCE_HARD_FORWARD_MCP_UPSTREAM, value: "http://127.0.0.1:8000"}
+          readinessProbe: {httpGet: {path: /healthz, port: mcp}}
+          resources: {{- toYaml .Values.mcpAdapter.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
+
+      volumes:
+        - name: results
+          persistentVolumeClaim: {claimName: {{ .Values.storage.resultsClaim }}}

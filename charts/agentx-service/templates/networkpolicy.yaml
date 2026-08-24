@@ -1,0 +1,21 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: agentx-service}
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: agentx-service}
+  policyTypes: [Ingress, Egress]
+  ingress: {{- toYaml .Values.networkPolicy.controllerIngress | nindent 4 }}
+  egress: {{- toYaml .Values.networkPolicy.controllerEgress | nindent 4 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: agentx-workers}
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: agentx-benchmark}
+  policyTypes: [Ingress, Egress]
+  ingress: {{- toYaml .Values.networkPolicy.workerIngress | nindent 4 }}
+  egress: {{- toYaml .Values.networkPolicy.workerEgress | nindent 4 }}
+{{- end }}

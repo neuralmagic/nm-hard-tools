@@ -1,0 +1,6 @@
+apiVersion: v2
+name: inference-hard-forward-pass-benchmark
+description: Namespace-scoped vLLM forward-pass benchmark controller
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

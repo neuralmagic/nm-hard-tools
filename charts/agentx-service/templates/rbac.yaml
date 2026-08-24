@@ -1,0 +1,43 @@
+{{- if .Values.rbac.create }}
+{{- $reader := printf "agentx-clusterqueue-reader-%s-%s" (.Release.Namespace | trunc 27 | trimSuffix "-") (sha256sum .Release.Namespace | trunc 8) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: agentx-service}
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  - apiGroups: ["kueue.x-k8s.io"]
+    resources: ["localqueues"]
+    verbs: ["get"]
+  - apiGroups: ["kueue.x-k8s.io"]
+    resources: ["workloads"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: agentx-service}
+subjects: [{kind: ServiceAccount, name: agentx-service}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: agentx-service}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata: {name: {{ $reader }}}
+rules:
+  - apiGroups: ["kueue.x-k8s.io"]
+    resources: ["clusterqueues"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata: {name: {{ $reader }}}
+subjects:
+  - {kind: ServiceAccount, name: agentx-service, namespace: {{ .Release.Namespace }}}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: {{ $reader }}}
+{{- end }}

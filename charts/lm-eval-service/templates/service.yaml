@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lmeval.fullname" . }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{ include "lmeval.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: controller
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http

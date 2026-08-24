@@ -1,0 +1,47 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "lmeval.controllerNetworkPolicy" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "lmeval.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: controller
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace | quote }}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+{{ toYaml .Values.networkPolicy.controllerEgress | indent 4 }}
+  {{- if .Values.ledger.enabled }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace | quote }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.ledger.port }}
+  {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "lmeval.workerNetworkPolicy" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: lm-evaluation
+      app.kubernetes.io/managed-by: lm-eval-service
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress:
+{{ toYaml .Values.networkPolicy.workerEgress | indent 4 }}
+{{- end }}

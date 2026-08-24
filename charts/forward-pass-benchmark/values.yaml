@@ -1,0 +1,57 @@
+image: ""
+imagePullSecrets: []
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+mcpAdapter:
+  # inference-hard-tools supplies a stateless MCP transport sidecar until the
+  # independently released benchmark controller exposes native MCP.
+  image: ""
+  port: 8001
+  resources:
+    requests: {cpu: 25m, memory: 64Mi}
+    limits: {cpu: 250m, memory: 256Mi}
+
+rbac:
+  # Operator-bootstrap installs equivalent grants under separately owned names.
+  create: true
+
+storage:
+  resultsClaim: vdp-shared
+  modelCacheClaim: vdp-shared
+  # Optional Kubernetes volume source (for example, a generic ephemeral PVC).
+  # When set, workers use it instead of modelCacheClaim.
+  modelCacheVolume: null
+
+worker:
+  serviceAccount: vllm-forward-bench-worker
+  imagePullSecrets: []
+  allowedImagePrefixes: ""
+  allowedQueues: ""
+  # Explicit operator opt-in for model repositories that execute remote code.
+  # Kimi K3 requires this; keep false for all other installs by default.
+  allowTrustRemoteCode: false
+  # Existing VDP-wide Hugging Face credential. Requires a benchmark controller
+  # release that propagates this reference to the worker Job.
+  hfTokenSecret:
+    name: ""
+    key: HF_TOKEN
+
+vdp:
+  owner: ""
+  localQueue: ""
+
+# The benchmark worker is a runtime-independent bundle rather than an image of
+# its own: the service injects it into whichever vLLM image a specification
+# names. Both are required -- the service validates the bundle against the
+# digest and refuses to start unless it has each of them.
+workerPlugin:
+  image: ""
+  bundleSha256: ""
+
+service:
+  port: 8000
+
+resources:
+  requests: {cpu: 100m, memory: 256Mi}
+  limits: {cpu: "1", memory: 1Gi}

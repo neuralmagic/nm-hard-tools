@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lmeval.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "lmeval.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: controller
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "lmeval.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        app.kubernetes.io/component: controller
+    spec:
+      serviceAccountName: {{ include "lmeval.controllerServiceAccount" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: controller
+          image: {{ include "lmeval.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: LM_EVAL_SERVICE_CONFIG
+              value: /etc/lm-eval/config.yaml
+            - name: LM_EVAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "auth.existingSecret is required" .Values.auth.existingSecret | quote }}
+                  key: {{ .Values.auth.secretKey | quote }}
+            {{- if .Values.ledger.enabled }}
+            - name: LM_EVAL_LEDGER_WRITER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required "ledger.existingSecret is required when ledger.enabled=true" .Values.ledger.existingSecret | quote }}
+                  key: {{ .Values.ledger.secretKey | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - >-
+                  import urllib.request;
+                  urllib.request.urlopen('http://127.0.0.1:8080/readyz', timeout=1).read()
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - >-
+                  import urllib.request;
+                  urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=1).read()
+            periodSeconds: 20
+          resources:
+{{ toYaml .Values.controller.resources | indent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: config
+              mountPath: /etc/lm-eval
+              readOnly: true
+            - name: results
+              mountPath: /var/lib/lm-eval-results
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "lmeval.fullname" . }}
+        - name: results
+          persistentVolumeClaim:
+            claimName: {{ include "lmeval.resultClaim" . }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi

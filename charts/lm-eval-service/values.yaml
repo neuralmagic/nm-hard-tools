@@ -1,0 +1,129 @@
+image:
+  # Required. The chart never assumes a personal or environment-specific registry.
+  repository: ""
+  # Required: sha256:<64 hex characters>. Tags are intentionally unsupported.
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# Registry credentials already present in the release namespace, for example
+# [{name: registry-pull}].
+imagePullSecrets: []
+
+replicaCount: 1
+nodeSelector:
+  kubernetes.io/arch: amd64
+rbac:
+  # Operator bootstrap installs equivalent grants under separately owned names.
+  create: true
+service:
+  port: 8080
+
+auth:
+  # Required Secret containing the bearer token accepted by mutation endpoints.
+  existingSecret: ""
+  secretKey: token
+  mutationRateLimitPerMinute: 20
+  allowedOrigins: []
+
+ledger:
+  # Optional measured-artifact registration with a per-user VDP ledger API.
+  enabled: false
+  url: ""
+  existingSecret: ""
+  secretKey: token
+  timeoutSeconds: 2
+  reconcileSeconds: 5
+  port: 8000
+
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+worker:
+  cacheSizeLimit: 4Gi
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      cpu: "4"
+      memory: 8Gi
+
+persistence:
+  existingClaim: ""
+  accessModes: [ReadWriteMany]
+  size: 50Gi
+  storageClassName: ""
+
+datasetCache:
+  # Optional pre-populated cache PVC. Workers mount it read-only and force
+  # Hugging Face offline mode; omit it to use the per-Job writable emptyDir.
+  existingClaim: ""
+  mountPath: /var/cache/lm-eval
+
+# Optional VDP-wide Hugging Face credential used by profiles that do not name
+# their own Secret. Keeping this empty preserves public-dataset operation.
+huggingFace:
+  tokenSecret:
+    name: ""
+    key: HF_TOKEN
+
+# Requests select only operator-defined logical names; callers cannot supply URLs.
+targets: {}
+
+# Operator-approved profiles are the only task and dataset inputs callers can
+# select. Dataset revisions must be full immutable Hugging Face commit hashes.
+profiles:
+  gsm8k:
+    tasks:
+      - name: gsm8k
+        config_path: lm_eval/tasks/gsm8k/gsm8k.yaml
+        dataset:
+          path: openai/gsm8k
+          name: main
+          revision: 740312add88f781978c0658806c59bc2815b9866
+    primary_metric:
+      task: gsm8k
+      metric: exact_match
+      filter: flexible-extract
+    default_num_fewshot: 5
+    max_num_fewshot: 32
+    default_generation_limit: 512
+    max_generation_limit: 4096
+    max_samples: 1319
+
+networkPolicy:
+  # Controller ingress is limited to this release's namespace. Replace the
+  # illustrative egress rules with cluster-specific API
+  # server, DNS, storage, and target rules before deployment. NetworkPolicy
+  # cannot select arbitrary Service DNS names; the logical allowlist remains
+  # the authoritative application-layer control.
+  enabled: true
+  controllerEgress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+    - to:
+        - ipBlock: {cidr: 0.0.0.0/0}
+      ports:
+        - {protocol: TCP, port: 443}
+  workerEgress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+    # Add cluster-specific, narrowly scoped dataset or inference egress. The
+    # bundled VDP installer instead requires an offline dataset-cache PVC and
+    # adds only the configured in-namespace inference Service ports.

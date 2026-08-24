@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "lmeval.fullname" . }}
+data:
+  config.yaml: |
+    namespace: {{ .Release.Namespace | quote }}
+    worker_image: {{ include "lmeval.image" . | quote }}
+    result_claim_name: {{ include "lmeval.resultClaim" . | quote }}
+    result_root: /var/lib/lm-eval-results
+    worker_service_account: {{ include "lmeval.workerServiceAccount" . | quote }}
+    service_instance: {{ .Release.Name | quote }}
+    image_pull_secrets:
+    {{- range .Values.imagePullSecrets }}
+      - {{ required "imagePullSecrets entries require name" .name | quote }}
+    {{- end }}
+    node_selector:
+{{ toYaml .Values.nodeSelector | indent 6 }}
+    cpu_request: {{ .Values.worker.resources.requests.cpu | quote }}
+    cpu_limit: {{ .Values.worker.resources.limits.cpu | quote }}
+    memory_request: {{ .Values.worker.resources.requests.memory | quote }}
+    memory_limit: {{ .Values.worker.resources.limits.memory | quote }}
+    worker_cache_size_limit: {{ .Values.worker.cacheSizeLimit | quote }}
+    {{- if .Values.datasetCache.existingClaim }}
+    dataset_cache_claim_name: {{ .Values.datasetCache.existingClaim | quote }}
+    {{- end }}
+    dataset_cache_root: {{ .Values.datasetCache.mountPath | quote }}
+    {{- if .Values.huggingFace.tokenSecret.name }}
+    hf_token_secret_name: {{ .Values.huggingFace.tokenSecret.name | quote }}
+    {{- end }}
+    hf_token_secret_key: {{ .Values.huggingFace.tokenSecret.key | quote }}
+    mutation_rate_limit_per_minute: {{ .Values.auth.mutationRateLimitPerMinute }}
+    allowed_origins:
+{{ toYaml .Values.auth.allowedOrigins | indent 6 }}
+    {{- if .Values.ledger.enabled }}
+    ledger_url: {{ required "ledger.url is required when ledger.enabled=true" .Values.ledger.url | quote }}
+    ledger_timeout_seconds: {{ .Values.ledger.timeoutSeconds }}
+    ledger_reconcile_seconds: {{ .Values.ledger.reconcileSeconds }}
+    {{- end }}
+    targets:
+{{ toYaml .Values.targets | indent 6 }}
+    profiles:
+{{ toYaml .Values.profiles | indent 6 }}
