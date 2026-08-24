@@ -141,9 +141,6 @@ class ServiceSettings(BaseModel):
     hf_token_secret_key: SecretKey = HF_TOKEN_SECRET_KEY
     mutation_rate_limit_per_minute: int = Field(default=20, ge=1, le=600)
     allowed_origins: list[str] = Field(default_factory=list, max_length=32)
-    ledger_url: str | None = None
-    ledger_timeout_seconds: float = Field(default=2.0, gt=0, le=10)
-    ledger_reconcile_seconds: float = Field(default=5.0, ge=1, le=300)
     targets: dict[StrictName, TargetConfig]
     profiles: dict[StrictName, EvaluationProfile]
 
@@ -171,20 +168,6 @@ class ServiceSettings(BaseModel):
         if not normalized or not value.startswith("/") or ".." in Path(value).parts:
             raise ValueError("dataset_cache_root must be an absolute normalized path")
         return normalized
-
-    @field_validator("ledger_url")
-    @classmethod
-    def valid_ledger_url(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        parsed = urlsplit(value)
-        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-            raise ValueError("ledger_url must be an absolute HTTP(S) URL")
-        if parsed.username or parsed.password or parsed.query or parsed.fragment:
-            raise ValueError(
-                "ledger_url cannot contain credentials, query, or fragment"
-            )
-        return value.rstrip("/")
 
     @classmethod
     def from_file(cls, path: str | Path) -> ServiceSettings:

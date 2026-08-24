@@ -15,19 +15,6 @@ from inference_hard_tools.evaluation_service.service import EvaluationService
 
 from .conftest import ApiError
 
-
-class FakeLedger:
-    def __init__(self, failures: int = 0) -> None:
-        self.failures = failures
-        self.calls: list[dict[str, Any]] = []
-
-    def register(self, artifact: dict[str, Any]) -> None:
-        self.calls.append(artifact)
-        if self.failures:
-            self.failures -= 1
-            raise RuntimeError("ledger unavailable")
-
-
 if TYPE_CHECKING:
     from tests.evaluation_service.conftest import FakeKubernetes
 
@@ -62,7 +49,6 @@ def test_plan_is_exact_bounded_and_side_effect_free(
     assert env["HF_HOME"]["value"] == "/tmp/huggingface"
     assert env["HF_DATASETS_CACHE"]["value"] == "/tmp/huggingface/datasets"
     assert "@sha256:" in pod_spec["containers"][0]["image"]
-    assert "LM_EVAL_LEDGER_WRITER_TOKEN" not in env
     worker_config = json.loads(env["LM_EVAL_EVALUATION_CONFIG"]["value"])
     assert set(worker_config) == {
         "effective_configuration",
@@ -325,65 +311,6 @@ def test_profile_datasets_require_repository_ids_and_immutable_revisions(
     data["profiles"]["gsm8k"]["tasks"][0]["dataset"][field] = value
     with pytest.raises(ValidationError):
         ServiceSettings.model_validate(data)
-
-
-def test_terminal_report_registers_measured_ledger_pointer_once(
-    settings: ServiceSettings,
-    kube: FakeKubernetes,
-    request_body: dict[str, Any],
-) -> None:
-    ledger = FakeLedger()
-    service = EvaluationService(settings, kube, ledger)
-    evaluation = service.submit(
-        EvaluationRequest.model_validate(request_body)
-    ).evaluation_id
-    kube.jobs[evaluation]["status"] = {
-        "conditions": [{"type": "Failed", "status": "True"}]
-    }
-
-    service.get_report(evaluation)
-    assert ledger.calls == []
-    service.reconcile_ledger()
-    service.reconcile_ledger()
-
-    assert len(ledger.calls) == 1
-    artifact = ledger.calls[0]
-    assert artifact["workstream_id"] == "ws-0123456789ab"
-    assert artifact["kind"] == "lm-evaluation-report"
-    assert artifact["operation_ref"] == evaluation
-    assert "commit_sha" not in artifact
-    assert artifact["storage_url"].endswith(f"/{evaluation}/report.json")
-    marker = Path(settings.result_root) / evaluation / "ledger-registration.json"
-    assert json.loads(marker.read_text())["artifact_id"] == artifact["artifact_id"]
-    assert kube.list_calls[-1] == (
-        "evals",
-        (
-            "app.kubernetes.io/managed-by=lm-eval-service,"
-            "app.kubernetes.io/instance=lm-eval-test"
-        ),
-        None,
-    )
-
-
-def test_ledger_failure_never_blocks_report_and_retries(
-    settings: ServiceSettings,
-    kube: FakeKubernetes,
-    request_body: dict[str, Any],
-) -> None:
-    ledger = FakeLedger(failures=1)
-    service = EvaluationService(settings, kube, ledger)
-    evaluation = service.submit(
-        EvaluationRequest.model_validate(request_body)
-    ).evaluation_id
-    kube.jobs[evaluation]["status"] = {
-        "conditions": [{"type": "Failed", "status": "True"}]
-    }
-
-    assert service.get_report(evaluation).terminal_state == "failed"
-    service.reconcile_ledger()
-    assert service.get_report(evaluation).terminal_state == "failed"
-    service.reconcile_ledger()
-    assert len(ledger.calls) == 2
 
 
 def test_cancel_race_preserves_completed_job_and_worker_report(

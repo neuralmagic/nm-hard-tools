@@ -62,33 +62,6 @@ def test_container_build_is_locked_and_requires_explicit_base() -> None:
     assert "uv sync --frozen" in dockerfile
 
 
-def test_ledger_writer_secret_is_controller_only() -> None:
-    documents = _render(
-        "gsm8k",
-        "--set=ledger.enabled=true",
-        "--set=ledger.url=http://vdp-user:8000",
-        "--set=ledger.existingSecret=gsm8k-ledger-writer",
-    )
-    deployment = next(item for item in documents if item["kind"] == "Deployment")
-    env = deployment["spec"]["template"]["spec"]["containers"][0]["env"]
-    assert "LM_EVAL_LEDGER_WRITER_TOKEN" in {item["name"] for item in env}
-    config_map = next(item for item in documents if item["kind"] == "ConfigMap")
-    settings = yaml.safe_load(config_map["data"]["config.yaml"])
-    assert settings["ledger_url"] == "http://vdp-user:8000"
-    policy = next(
-        item
-        for item in documents
-        if item["kind"] == "NetworkPolicy"
-        and item["spec"]["podSelector"]["matchLabels"].get(
-            "app.kubernetes.io/component"
-        )
-        == "controller"
-    )
-    assert 8000 in {
-        port["port"] for rule in policy["spec"]["egress"] for port in rule["ports"]
-    }
-
-
 def test_release_selectors_are_isolated() -> None:
     for release in ("alpha", "beta"):
         documents = _render(release)

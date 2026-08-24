@@ -1,6 +1,6 @@
 apiVersion: v2
 name: inference-hard-nyann-bench
-description: BoM-pinned Nyann benchmark MCP service for VDP
+description: BoM-pinned Nyann benchmark MCP service
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

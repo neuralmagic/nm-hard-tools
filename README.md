@@ -1,8 +1,8 @@
 # Inference Hard Tools
 
 Deployable, stateless MCP services for rigorous inference evaluation and
-benchmarking. This repository owns the service implementations and Helm charts;
-platforms such as VDP consume its immutable images and chart releases.
+benchmarking. This repository owns the service implementations, container
+images, and Helm charts.
 
 Included services:
 
@@ -24,3 +24,7 @@ The lm-eval image must be built with an explicit Python base image:
 podman build -f Dockerfile.lm-eval-service \
   --build-arg BASE_IMAGE=python:3.12-slim -t inference-hard-lm-eval:dev .
 ```
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).

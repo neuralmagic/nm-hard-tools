@@ -13,12 +13,12 @@ mcpAdapter:
     limits: {cpu: 250m, memory: 256Mi}
 
 rbac:
-  # Operator-bootstrap installs equivalent grants under separately owned names.
+  # Set false when an operator provisions equivalent grants separately.
   create: true
 
 storage:
-  resultsClaim: vdp-shared
-  modelCacheClaim: vdp-shared
+  resultsClaim: inference-hard-results
+  modelCacheClaim: inference-hard-model-cache
   # Optional Kubernetes volume source (for example, a generic ephemeral PVC).
   # When set, workers use it instead of modelCacheClaim.
   modelCacheVolume: null
@@ -31,14 +31,13 @@ worker:
   # Explicit operator opt-in for model repositories that execute remote code.
   # Kimi K3 requires this; keep false for all other installs by default.
   allowTrustRemoteCode: false
-  # Existing VDP-wide Hugging Face credential. Requires a benchmark controller
+  # Existing shared Hugging Face credential. Requires a benchmark controller
   # release that propagates this reference to the worker Job.
   hfTokenSecret:
     name: ""
     key: HF_TOKEN
 
-vdp:
-  owner: ""
+scheduling:
   localQueue: ""
 
 # The benchmark worker is a runtime-independent bundle rather than an image of

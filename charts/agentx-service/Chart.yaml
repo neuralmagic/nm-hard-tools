@@ -1,6 +1,6 @@
 apiVersion: v2
 name: inference-hard-agentx-service
-description: BoM-pinned AgentX benchmark MCP service for VDP
+description: BoM-pinned AgentX benchmark MCP service
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

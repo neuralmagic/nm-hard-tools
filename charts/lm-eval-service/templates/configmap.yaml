@@ -32,11 +32,6 @@ data:
     mutation_rate_limit_per_minute: {{ .Values.auth.mutationRateLimitPerMinute }}
     allowed_origins:
 {{ toYaml .Values.auth.allowedOrigins | indent 6 }}
-    {{- if .Values.ledger.enabled }}
-    ledger_url: {{ required "ledger.url is required when ledger.enabled=true" .Values.ledger.url | quote }}
-    ledger_timeout_seconds: {{ .Values.ledger.timeoutSeconds }}
-    ledger_reconcile_seconds: {{ .Values.ledger.reconcileSeconds }}
-    {{- end }}
     targets:
 {{ toYaml .Values.targets | indent 6 }}
     profiles:

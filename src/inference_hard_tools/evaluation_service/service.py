@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import os
 import tempfile
 from datetime import UTC, datetime
@@ -17,7 +16,6 @@ from inference_hard_tools.evaluation_service.artifacts import (
     ArtifactConflict,
     ArtifactStore,
     artifact_metadata,
-    atomic_json,
 )
 from inference_hard_tools.evaluation_service.models import (
     ArtifactList,
@@ -36,11 +34,9 @@ from inference_hard_tools.evaluation_service.planner import (
 if TYPE_CHECKING:
     from inference_hard_tools.evaluation_service.config import ServiceSettings
     from inference_hard_tools.evaluation_service.kube import KubernetesBackend
-    from inference_hard_tools.evaluation_service.ledger_client import LedgerRegistrar
 
 
 MANAGED_LABEL = "app.kubernetes.io/managed-by=lm-eval-service"
-logger = logging.getLogger(__name__)
 
 
 class EvaluationNotFound(KeyError):
@@ -64,11 +60,9 @@ class EvaluationService:
         self,
         settings: ServiceSettings,
         kube: KubernetesBackend,
-        ledger: LedgerRegistrar | None = None,
     ) -> None:
         self.settings = settings
         self.kube = kube
-        self.ledger = ledger
         self.lm_eval_revision = lm_eval_commit()
         self.artifacts = ArtifactStore(settings.result_root)
 
@@ -140,9 +134,7 @@ class EvaluationService:
                     self._synthesize_terminal_report(
                         reconciled, "cancelled", "cancelled by operator"
                     )
-                result = self._status(reconciled)
-                self._register_terminal_report(result)
-                return result
+                return self._status(reconciled)
             report_path = self.artifacts.path(evaluation, "report.json")
             if report_path.exists():
                 EvaluationReport.model_validate(
@@ -177,9 +169,7 @@ class EvaluationService:
                 self._synthesize_terminal_report(
                     reconciled, "cancelled", "cancelled by operator"
                 )
-            result = self._status(reconciled)
-            self._register_terminal_report(result)
-            return result
+            return self._status(reconciled)
         raise EvaluationConflict("evaluation changed concurrently; retry cancellation")
 
     def list_artifacts(self, evaluation: str) -> ArtifactList:
@@ -216,46 +206,6 @@ class EvaluationService:
                 "durable report terminal state does not match the Kubernetes Job"
             )
         return report
-
-    def reconcile_ledger(self) -> None:
-        if self.ledger is None:
-            return
-        jobs = self.kube.list_jobs(self.settings.namespace, self.managed_selector, None)
-        for job in jobs:
-            self._register_terminal_report(self._status(job))
-
-    def _register_terminal_report(self, status: EvaluationStatus) -> None:
-        if (
-            self.ledger is None
-            or status.state not in {"succeeded", "failed", "cancelled"}
-            or status.workstream is None
-        ):
-            return
-        output_dir = self.artifacts.output_dir(status.evaluation_id)
-        report_path = output_dir / "report.json"
-        marker_path = output_dir / "ledger-registration.json"
-        if not report_path.exists() or marker_path.exists():
-            return
-        report_metadata = artifact_metadata(report_path)
-        run_id = status.workstream.run_id
-        artifact = {
-            "artifact_id": report_metadata["sha256"],
-            "kind": "lm-evaluation-report",
-            "workstream_id": status.workstream.workstream_id,
-            "operation_ref": status.evaluation_id,
-            "storage_url": (
-                f"pvc://{self.settings.namespace}/{self.settings.result_claim_name}/"
-                f"{status.evaluation_id}/report.json"
-            ),
-            "note": f"run_id={run_id}" if run_id else None,
-        }
-        try:
-            self.ledger.register(artifact)
-            atomic_json(marker_path, artifact)
-        except Exception as exc:  # noqa: BLE001 - ledger is loss-tolerant memory.
-            logger.warning(
-                "ledger registration failed for %s: %s", status.evaluation_id, exc
-            )
 
     def logs(self, evaluation: str, tail_lines: int) -> str:
         self.get(evaluation)
@@ -397,7 +347,6 @@ class EvaluationService:
         if completed_at is None and durable_completed_at is not None:
             completed_at = durable_completed_at
         request = json.loads(annotations[f"{ANNOTATION_PREFIX}request"])
-        workstream = request.get("workstream")
         return EvaluationStatus(
             evaluation_id=metadata["name"],
             state=state,
@@ -408,6 +357,5 @@ class EvaluationService:
             model=request["model"],
             profile=request["profile"],
             request_sha256=annotations[f"{ANNOTATION_PREFIX}request-sha256"],
-            workstream=workstream,
             message=message,
         )

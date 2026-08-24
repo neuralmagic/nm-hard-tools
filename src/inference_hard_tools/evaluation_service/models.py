@@ -34,14 +34,6 @@ class Seeds(StrictModel):
     fewshot: int = Field(default=1234, ge=0, le=4_294_967_295)
 
 
-class WorkstreamAttachment(StrictModel):
-    workstream_id: Annotated[str, StringConstraints(pattern=r"^ws-[0-9a-f]{12}$")]
-    run_id: (
-        Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")]
-        | None
-    ) = None
-
-
 class EvaluationRequest(StrictModel):
     target: StrictName
     model: Annotated[str, StringConstraints(min_length=1, max_length=256)]
@@ -52,7 +44,6 @@ class EvaluationRequest(StrictModel):
     generation_limit: int | None = Field(default=None, ge=1, le=4096)
     chat_template: Literal["none", "default"] = "none"
     timeout_seconds: int = Field(default=7_200, ge=60, le=86_400)
-    workstream: WorkstreamAttachment | None = None
 
 
 class EvaluationRef(StrictModel):
@@ -82,7 +73,6 @@ class EvaluationStatus(StrictModel):
     model: str
     profile: StrictName
     request_sha256: str
-    workstream: WorkstreamAttachment | None = None
     message: str | None = None
 
 

@@ -36,7 +36,7 @@ spec:
             - {name: BENCH_WORKER_SERVICE_ACCOUNT, value: {{ .Values.worker.serviceAccount | quote }}}
             - {name: BENCH_IMAGE_PULL_SECRETS, value: {{ join "," .Values.worker.imagePullSecrets | quote }}}
             - {name: BENCH_ALLOWED_IMAGE_PREFIXES, value: {{ .Values.worker.allowedImagePrefixes | quote }}}
-            - {name: BENCH_ALLOWED_QUEUES, value: {{ default .Values.vdp.localQueue .Values.worker.allowedQueues | quote }}}
+            - {name: BENCH_ALLOWED_QUEUES, value: {{ default .Values.scheduling.localQueue .Values.worker.allowedQueues | quote }}}
             - {name: BENCH_ALLOW_TRUST_REMOTE_CODE, value: {{ ternary "1" "0" .Values.worker.allowTrustRemoteCode | quote }}}
             - {name: BENCH_HF_TOKEN_SECRET_NAME, value: {{ .Values.worker.hfTokenSecret.name | quote }}}
             - {name: BENCH_HF_TOKEN_SECRET_KEY, value: {{ .Values.worker.hfTokenSecret.key | quote }}}

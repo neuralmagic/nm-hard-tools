@@ -17,7 +17,7 @@ docker build -f Dockerfile.lm-eval-service \
   --build-arg SOURCE_REVISION=$(git rev-parse HEAD) \
   -t registry.example/inference-hard-lm-eval-service:<build-id> .
 
-helm upgrade --install evals charts/inference-hard-lm-eval-service \
+helm upgrade --install evals charts/lm-eval-service \
   --namespace lm-eval --create-namespace \
   --set image.repository=registry.example/inference-hard-lm-eval-service \
   --set image.digest=sha256:<worker-image-digest> \
@@ -28,12 +28,6 @@ The inference-hard-tools image installs `lm-evaluation-harness` from the pinned
 upstream commit. It does not patch or vendor lm-eval. Configure `targets` as the
 complete operator allowlist; request bodies contain only a logical target name.
 Credentials are read from operator-selected Kubernetes Secrets.
-
-For the integrated VDP installation path, use the `vdp install`
-`--lm-eval-*` options documented in [Installation bundles](installation.md).
-That path selects the image and upstream revision from one release BOM,
-installs this chart, adds the service to the global catalog, and registers its
-authenticated `/mcp` endpoint in the managed-agent tool configuration.
 
 ## Evaluation profiles
 
@@ -78,11 +72,11 @@ accepted.
 
 Without a shared cache, each Job uses its bounded writable `emptyDir` and may
 download its pinned datasets over the worker egress policy. For gated datasets,
-set the chart-wide `huggingFace.tokenSecret.name` (VDP installs use
-`hf-secret/HF_TOKEN`). Profiles inherit this reference and may override it with
+set the chart-wide `huggingFace.tokenSecret.name`. Profiles inherit this
+reference and may override it with
 `dataset_token_secret_name` and `dataset_token_secret_key`. Only evaluation
 Jobs receive `HF_TOKEN`; the secret value is never stored in the request, Job
-annotations, effective configuration, report, or ledger.
+annotations, effective configuration, or report.
 
 For repeatable or disconnected operation, populate a PVC separately with the
 exact profile revisions, then configure:
@@ -101,8 +95,7 @@ operator workflows outside this service.
 Before measurement, the worker resolves each pinned dataset through the same
 effective task configuration and records every loaded split's Hugging Face
 fingerprint. Reports therefore contain both the declared repository identity
-and runtime fingerprints. The ledger retains only the report hash and durable
-pointer, not dataset contents or credentials.
+and runtime fingerprints.
 
 ## Request and report
 
@@ -118,8 +111,7 @@ All objects reject unknown fields:
   "seeds": {"python": 0, "numpy": 1234, "torch": 1234, "fewshot": 1234},
   "generation_limit": null,
   "chat_template": "none",
-  "timeout_seconds": 7200,
-  "workstream": {"workstream_id": "ws-0123456789ab", "run_id": "optional-run"}
+  "timeout_seconds": 7200
 }
 ```
 
@@ -135,20 +127,13 @@ measurement window, lm-eval version and commit, full effective configuration,
 served-model and credential-free endpoint identities, terminal state, artifact
 hashes, and a bounded error. Samples and raw lm-eval output remain artifacts.
 
-## MCP and artifact ledger
+## MCP
 
 `POST /mcp` uses the repository's stateless Streamable HTTP protocol version
 `2026-07-28`. Its seven tools are `plan_evaluation`, `submit_evaluation`,
 `list_evaluations`, `get_evaluation`, `cancel_evaluation`,
 `list_evaluation_artifacts`, and `get_evaluation_report`. Tool schemas are the
 same strict models used by REST.
-
-An optional workstream attachment survives in the request, Job, status, and
-report. When ledger integration is enabled, only the controller receives its
-writer token. It best-effort registers an `lm-evaluation-report` artifact with
-the report SHA-256, evaluation ID, workstream ID, and PVC URL. A durable marker
-makes reconciliation idempotent. Metrics, samples, datasets, logs, and secrets
-are not copied into the ledger.
 
 ## Limitations
 

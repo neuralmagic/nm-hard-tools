@@ -160,5 +160,4 @@ def request_body() -> dict[str, Any]:
         "generation_limit": 512,
         "chat_template": "none",
         "timeout_seconds": 3600,
-        "workstream": {"workstream_id": "ws-0123456789ab", "run_id": "run-1"},
     }

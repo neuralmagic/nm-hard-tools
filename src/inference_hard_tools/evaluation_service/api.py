@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import asyncio
-import logging
 import os
 import secrets
 import time
 from collections import deque
-from contextlib import asynccontextmanager
 from threading import Lock
 from typing import Annotated, Any
 
@@ -22,10 +19,6 @@ from inference_hard_tools.evaluation_service.config import ServiceSettings
 from inference_hard_tools.evaluation_service.kube import (
     KubernetesBackend,
     KubernetesClient,
-)
-from inference_hard_tools.evaluation_service.ledger_client import (
-    HttpLedgerRegistrar,
-    LedgerRegistrar,
 )
 from inference_hard_tools.evaluation_service.mcp import evaluation_tools
 from inference_hard_tools.evaluation_service.models import (
@@ -44,7 +37,6 @@ from inference_hard_tools.evaluation_service.service import (
 from inference_hard_tools.mcp import McpServer, McpTool
 
 MAX_MCP_REQUEST_BYTES = 1_048_576
-logger = logging.getLogger(__name__)
 
 
 class MutationGuard:
@@ -201,9 +193,8 @@ def create_app(
     settings: ServiceSettings,
     kube: KubernetesBackend,
     mutation_token: str,
-    ledger: LedgerRegistrar | None = None,
 ) -> FastAPI:
-    service = EvaluationService(settings, kube, ledger)
+    service = EvaluationService(settings, kube)
     mutation_guard = MutationGuard(
         mutation_token, settings.mutation_rate_limit_per_minute
     )
@@ -212,36 +203,11 @@ def create_app(
         if not (tool.annotations or {}).get("readOnlyHint", False):
             mutation_guard.check_rate()
 
-    @asynccontextmanager
-    async def lifespan(_app: FastAPI):
-        task = None
-        if ledger is not None:
-
-            async def reconcile() -> None:
-                while True:
-                    try:
-                        await asyncio.to_thread(service.reconcile_ledger)
-                    except Exception:
-                        logger.exception("lm-eval ledger reconciliation failed")
-                    await asyncio.sleep(settings.ledger_reconcile_seconds)
-
-            task = asyncio.create_task(reconcile())
-        try:
-            yield
-        finally:
-            if task is not None:
-                task.cancel()
-                try:
-                    await task
-                except asyncio.CancelledError:
-                    pass
-
     app = FastAPI(
         title="lm-eval evaluation service",
         version=SERVICE_VERSION,
         docs_url="/docs",
         openapi_url="/openapi.json",
-        lifespan=lifespan,
     )
     app.add_middleware(
         RequestGateMiddleware,
@@ -349,19 +315,7 @@ def create_configured_app() -> FastAPI:
     if not token:
         raise RuntimeError("LM_EVAL_API_TOKEN is required")
     settings = ServiceSettings.from_environment()
-    writer_token = os.environ.get("LM_EVAL_LEDGER_WRITER_TOKEN", "")
-    if bool(settings.ledger_url) != bool(writer_token):
-        raise RuntimeError(
-            "ledger_url and LM_EVAL_LEDGER_WRITER_TOKEN must be configured together"
-        )
-    ledger = (
-        HttpLedgerRegistrar(
-            settings.ledger_url, writer_token, settings.ledger_timeout_seconds
-        )
-        if settings.ledger_url
-        else None
-    )
-    return create_app(settings, KubernetesClient(), token, ledger)
+    return create_app(settings, KubernetesClient(), token)
 
 
 def main() -> None:

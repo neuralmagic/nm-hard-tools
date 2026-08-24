@@ -25,7 +25,10 @@ def mcp_request(
     values = dict(params or {})
     values["_meta"] = {
         "io.modelcontextprotocol/protocolVersion": version,
-        "io.modelcontextprotocol/clientInfo": {"name": "vdp-test", "version": "1"},
+        "io.modelcontextprotocol/clientInfo": {
+            "name": "inference-hard-test",
+            "version": "1",
+        },
         "io.modelcontextprotocol/clientCapabilities": {},
     }
     headers = {

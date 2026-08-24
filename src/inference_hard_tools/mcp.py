@@ -491,7 +491,7 @@ def fastapi_mcp_tools(
                 kwargs["json"] = arguments.get("request")
             transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
             async with httpx.AsyncClient(
-                transport=transport, base_url="http://vdp.internal"
+                transport=transport, base_url="http://inference-hard.internal"
             ) as client:
                 response = await client.request(http_method, path, **kwargs)
             if len(response.content) > maximum_result_bytes:

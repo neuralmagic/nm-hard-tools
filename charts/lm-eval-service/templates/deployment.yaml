@@ -46,13 +46,6 @@ spec:
                 secretKeyRef:
                   name: {{ required "auth.existingSecret is required" .Values.auth.existingSecret | quote }}
                   key: {{ .Values.auth.secretKey | quote }}
-            {{- if .Values.ledger.enabled }}
-            - name: LM_EVAL_LEDGER_WRITER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ required "ledger.existingSecret is required when ledger.enabled=true" .Values.ledger.existingSecret | quote }}
-                  key: {{ .Values.ledger.secretKey | quote }}
-            {{- end }}
           ports:
             - name: http
               containerPort: 8080

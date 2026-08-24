@@ -13,7 +13,7 @@ replicaCount: 1
 nodeSelector:
   kubernetes.io/arch: amd64
 rbac:
-  # Operator bootstrap installs equivalent grants under separately owned names.
+  # Set false when an operator provisions equivalent grants separately.
   create: true
 service:
   port: 8080
@@ -24,16 +24,6 @@ auth:
   secretKey: token
   mutationRateLimitPerMinute: 20
   allowedOrigins: []
-
-ledger:
-  # Optional measured-artifact registration with a per-user VDP ledger API.
-  enabled: false
-  url: ""
-  existingSecret: ""
-  secretKey: token
-  timeoutSeconds: 2
-  reconcileSeconds: 5
-  port: 8000
 
 controller:
   resources:
@@ -66,7 +56,7 @@ datasetCache:
   existingClaim: ""
   mountPath: /var/cache/lm-eval
 
-# Optional VDP-wide Hugging Face credential used by profiles that do not name
+# Optional shared Hugging Face credential used by profiles that do not name
 # their own Secret. Keeping this empty preserves public-dataset operation.
 huggingFace:
   tokenSecret:
@@ -125,5 +115,5 @@ networkPolicy:
         - {protocol: UDP, port: 53}
         - {protocol: TCP, port: 53}
     # Add cluster-specific, narrowly scoped dataset or inference egress. The
-    # bundled VDP installer instead requires an offline dataset-cache PVC and
-    # adds only the configured in-namespace inference Service ports.
+    # Disconnected installations can require an offline dataset-cache PVC and
+    # allow only the configured inference Service ports.

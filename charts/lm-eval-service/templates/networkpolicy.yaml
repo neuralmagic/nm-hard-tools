@@ -20,15 +20,6 @@ spec:
           port: 8080
   egress:
 {{ toYaml .Values.networkPolicy.controllerEgress | indent 4 }}
-  {{- if .Values.ledger.enabled }}
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: {{ .Release.Namespace | quote }}
-      ports:
-        - protocol: TCP
-          port: {{ .Values.ledger.port }}
-  {{- end }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
