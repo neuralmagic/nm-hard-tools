@@ -17,7 +17,7 @@ lm-eval-service = [
   "lm_eval[api] @ git+https://github.com/EleutherAI/lm-evaluation-harness.git@8a07e1110d060de48cfc7a9a7987b7659060b60b",
 ]
 test = [
-  "pytest>=8,<9",
+  "pytest>=8,<10",
   "ruff>=0.12,<1",
 ]
 
