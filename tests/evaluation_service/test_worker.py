@@ -11,8 +11,8 @@ from typing import Any
 import pytest
 from lm_eval.tasks._yaml_loader import load_yaml
 
-from inference_hard_tools.evaluation_service import worker
-from inference_hard_tools.evaluation_service.worker import (
+from nm_hard_tools.evaluation_service import worker
+from nm_hard_tools.evaluation_service.worker import (
     BoundedTee,
     LogBudget,
     run,

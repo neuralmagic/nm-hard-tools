@@ -18,9 +18,9 @@ from typing import Any
 
 from lm_eval.utils import handle_non_serializable
 
-from inference_hard_tools.evaluation_service import lm_eval_commit
-from inference_hard_tools.evaluation_service.artifacts import artifact_metadata
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service import lm_eval_commit
+from nm_hard_tools.evaluation_service.artifacts import artifact_metadata
+from nm_hard_tools.evaluation_service.models import (
     EvaluationReport,
     EvaluationRequest,
     PrimaryMetric,

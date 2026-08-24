@@ -19,9 +19,9 @@ RUN test "${LM_EVAL_COMMIT}" = "8a07e1110d060de48cfc7a9a7987b7659060b60b" \
     && groupadd --gid 65532 lm-eval \
     && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin lm-eval
 ENV LM_EVAL_COMMIT=${LM_EVAL_COMMIT}
-LABEL org.opencontainers.image.source="https://github.com/neuralmagic/inference-hard-tools" \
+LABEL org.opencontainers.image.source="https://github.com/neuralmagic/nm-hard-tools" \
       org.opencontainers.image.revision="${SOURCE_REVISION}" \
-      io.inference-hard-tools.lm-eval.revision="${LM_EVAL_COMMIT}"
+      io.nm-hard-tools.lm-eval.revision="${LM_EVAL_COMMIT}"
 
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH=/opt/venv/bin:$PATH \

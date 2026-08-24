@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -879,42 +879,6 @@ wheels = [
 ]
 
 [[package]]
-name = "inference-hard-tools"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "kubernetes" },
-    { name = "pydantic-settings" },
-    { name = "pyyaml" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-lm-eval-service = [
-    { name = "lm-eval", extra = ["api"] },
-]
-test = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", specifier = ">=0.116,<1" },
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "kubernetes", specifier = ">=33,<35" },
-    { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
-    { name = "pydantic-settings", specifier = ">=2.10,<3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },
-    { name = "pyyaml", specifier = ">=6,<7" },
-    { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12,<1" },
-    { name = "uvicorn", specifier = ">=0.35,<1" },
-]
-provides-extras = ["lm-eval-service", "test"]
-
-[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1385,6 +1349,42 @@ sdist = { url = "https://files.pythonhosted.org/packages/e0/e6/fe51d2bb1a3b446f5
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b6/6d/ebd2af4640b12168fdf0cb74b6118df2f32a2f62ec7e0c06fbfd80706639/nltk-3.10.3-py3-none-any.whl", hash = "sha256:ff9598a8e20518ee0d557745890cc4435b9578489e2dcbc69c4f81fa060caf7c", size = 1798643, upload-time = "2026-08-12T23:44:13.478Z" },
 ]
+
+[[package]]
+name = "nm-hard-tools"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "kubernetes" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+lm-eval-service = [
+    { name = "lm-eval", extra = ["api"] },
+]
+test = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.116,<1" },
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "kubernetes", specifier = ">=33,<35" },
+    { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
+    { name = "pydantic-settings", specifier = ">=2.10,<3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },
+    { name = "pyyaml", specifier = ">=6,<7" },
+    { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12,<1" },
+    { name = "uvicorn", specifier = ">=0.35,<1" },
+]
+provides-extras = ["lm-eval-service", "test"]
 
 [[package]]
 name = "numpy"
@@ -2339,7 +2339,7 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7a/97/5a3609c4f8d58b039179648e62dd220f89864f56f7357f5d4f45c29eb2cc/scipy-1.17.1.tar.gz", hash = "sha256:95d8e012d8cb8816c226aef832200b1d45109ed4464303e997c5b13122b297c0", size = 30573822, upload-time = "2026-02-23T00:26:24.851Z" }
 wheels = [
@@ -2418,7 +2418,7 @@ resolution-markers = [
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7e/74/66de6258867beb2ef08f35f9f2ac017a52cacd5081714d239ff1a442d458/scipy-1.18.1.tar.gz", hash = "sha256:52c4b7422442aba924d03ad4019852b08a92e64ea187b933135687bfe2747307", size = 30781235, upload-time = "2026-08-21T23:28:50.599Z" }
 wheels = [

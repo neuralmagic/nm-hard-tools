@@ -11,7 +11,7 @@ from urllib.parse import urlsplit, urlunsplit
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from inference_hard_tools.evaluation_service.models import SecretKey, StrictName
+from nm_hard_tools.evaluation_service.models import SecretKey, StrictName
 
 HF_TOKEN_SECRET_KEY = "HF_TOKEN"
 

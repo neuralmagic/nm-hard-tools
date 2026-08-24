@@ -13,15 +13,15 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from inference_hard_tools.evaluation_service import SERVICE_VERSION
-from inference_hard_tools.evaluation_service.artifacts import ArtifactConflict
-from inference_hard_tools.evaluation_service.config import ServiceSettings
-from inference_hard_tools.evaluation_service.kube import (
+from nm_hard_tools.evaluation_service import SERVICE_VERSION
+from nm_hard_tools.evaluation_service.artifacts import ArtifactConflict
+from nm_hard_tools.evaluation_service.config import ServiceSettings
+from nm_hard_tools.evaluation_service.kube import (
     KubernetesBackend,
     KubernetesClient,
 )
-from inference_hard_tools.evaluation_service.mcp import evaluation_tools
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service.mcp import evaluation_tools
+from nm_hard_tools.evaluation_service.models import (
     ArtifactList,
     EvaluationList,
     EvaluationReport,
@@ -29,12 +29,12 @@ from inference_hard_tools.evaluation_service.models import (
     EvaluationStatus,
     PlanResponse,
 )
-from inference_hard_tools.evaluation_service.service import (
+from nm_hard_tools.evaluation_service.service import (
     EvaluationConflict,
     EvaluationNotFound,
     EvaluationService,
 )
-from inference_hard_tools.mcp import McpServer, McpTool
+from nm_hard_tools.mcp import McpServer, McpTool
 
 MAX_MCP_REQUEST_BYTES = 1_048_576
 
@@ -320,7 +320,7 @@ def create_configured_app() -> FastAPI:
 
 def main() -> None:
     uvicorn.run(
-        "inference_hard_tools.evaluation_service.api:create_configured_app",
+        "nm_hard_tools.evaluation_service.api:create_configured_app",
         factory=True,
         host="0.0.0.0",
         port=8080,

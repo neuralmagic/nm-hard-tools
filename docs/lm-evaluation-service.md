@@ -24,7 +24,7 @@ helm upgrade --install evals charts/lm-eval-service \
   --set auth.existingSecret=lm-eval-api-token
 ```
 
-The inference-hard-tools image installs `lm-evaluation-harness` from the pinned
+The nm-hard-tools image installs `lm-evaluation-harness` from the pinned
 upstream commit. It does not patch or vendor lm-eval. Configure `targets` as the
 complete operator allowlist; request bodies contain only a logical target name.
 Credentials are read from operator-selected Kubernetes Secrets.

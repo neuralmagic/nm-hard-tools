@@ -10,14 +10,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from inference_hard_tools.evaluation_service import lm_eval_commit
-from inference_hard_tools.evaluation_service.artifacts import (
+from nm_hard_tools.evaluation_service import lm_eval_commit
+from nm_hard_tools.evaluation_service.artifacts import (
     MAX_REPORT_BYTES,
     ArtifactConflict,
     ArtifactStore,
     artifact_metadata,
 )
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service.models import (
     ArtifactList,
     EvaluationList,
     EvaluationReport,
@@ -26,14 +26,14 @@ from inference_hard_tools.evaluation_service.models import (
     PlanResponse,
     validate_evaluation_id,
 )
-from inference_hard_tools.evaluation_service.planner import (
+from nm_hard_tools.evaluation_service.planner import (
     ANNOTATION_PREFIX,
     plan_evaluation,
 )
 
 if TYPE_CHECKING:
-    from inference_hard_tools.evaluation_service.config import ServiceSettings
-    from inference_hard_tools.evaluation_service.kube import KubernetesBackend
+    from nm_hard_tools.evaluation_service.config import ServiceSettings
+    from nm_hard_tools.evaluation_service.kube import KubernetesBackend
 
 
 MANAGED_LABEL = "app.kubernetes.io/managed-by=lm-eval-service"
