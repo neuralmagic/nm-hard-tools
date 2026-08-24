@@ -1,4 +1,4 @@
-# Inference Hard Tools
+# NM Hard Tools
 
 Deployable, stateless MCP services for rigorous inference evaluation and
 benchmarking. This repository owns the service implementations, container

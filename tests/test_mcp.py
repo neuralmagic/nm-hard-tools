@@ -6,11 +6,11 @@ import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from inference_hard_tools.forward_benchmark_mcp import (
+from nm_hard_tools.forward_benchmark_mcp import (
     MAX_RESULT_BYTES,
     create_forward_benchmark_mcp_app,
 )
-from inference_hard_tools.mcp import PROTOCOL_VERSION, McpServer, McpTool, empty_schema
+from nm_hard_tools.mcp import PROTOCOL_VERSION, McpServer, McpTool, empty_schema
 
 
 def mcp_request(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from inference_hard_tools.mcp import PROTOCOL_VERSION, SERVER_INFO_META
+from nm_hard_tools.mcp import PROTOCOL_VERSION, SERVER_INFO_META
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
@@ -136,7 +136,7 @@ def test_all_mcp_requests_require_preparse_auth(
 ) -> None:
     from fastapi.testclient import TestClient
 
-    from inference_hard_tools.evaluation_service.api import create_app
+    from nm_hard_tools.evaluation_service.api import create_app
 
     untrusted = TestClient(create_app(settings, kube, "operator-token"))
     response = rpc(untrusted, "tools/list")
@@ -151,7 +151,7 @@ def test_mcp_mutation_rate_limit_remains_an_rpc_error(
 ) -> None:
     from fastapi.testclient import TestClient
 
-    from inference_hard_tools.evaluation_service.api import create_app
+    from nm_hard_tools.evaluation_service.api import create_app
 
     limited = settings.model_copy(update={"mutation_rate_limit_per_minute": 1})
     client = TestClient(

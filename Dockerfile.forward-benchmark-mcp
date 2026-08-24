@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 ARG SOURCE_REVISION=unknown
-ARG SOURCE_URL=https://github.com/neuralmagic/inference-hard-tools
+ARG SOURCE_URL=https://github.com/neuralmagic/nm-hard-tools
 
 LABEL org.opencontainers.image.source="${SOURCE_URL}" \
       org.opencontainers.image.revision="${SOURCE_REVISION}"

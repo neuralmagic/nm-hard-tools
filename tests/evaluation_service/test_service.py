@@ -8,10 +8,10 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-from inference_hard_tools.evaluation_service.api import create_app
-from inference_hard_tools.evaluation_service.config import ServiceSettings
-from inference_hard_tools.evaluation_service.models import EvaluationRequest
-from inference_hard_tools.evaluation_service.service import EvaluationService
+from nm_hard_tools.evaluation_service.api import create_app
+from nm_hard_tools.evaluation_service.config import ServiceSettings
+from nm_hard_tools.evaluation_service.models import EvaluationRequest
+from nm_hard_tools.evaluation_service.service import EvaluationService
 
 from .conftest import ApiError
 
@@ -39,7 +39,7 @@ def test_plan_is_exact_bounded_and_side_effect_free(
     assert pod_spec["containers"][0]["command"] == [
         "python",
         "-m",
-        "inference_hard_tools.evaluation_service.worker",
+        "nm_hard_tools.evaluation_service.worker",
     ]
     assert pod_spec["automountServiceAccountToken"] is False
     assert pod_spec["imagePullSecrets"] == [{"name": "registry-pull"}]

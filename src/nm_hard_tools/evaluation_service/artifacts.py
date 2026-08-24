@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service.models import (
     ArtifactList,
     validate_evaluation_id,
 )

@@ -8,9 +8,9 @@ import importlib.resources
 import json
 from pathlib import Path
 
-from inference_hard_tools.evaluation_service import SERVICE_VERSION
-from inference_hard_tools.evaluation_service.config import ServiceSettings, TaskConfig
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service import SERVICE_VERSION
+from nm_hard_tools.evaluation_service.config import ServiceSettings, TaskConfig
+from nm_hard_tools.evaluation_service.models import (
     EvaluationRequest,
     PlanResponse,
     canonical_request,
@@ -373,7 +373,7 @@ def plan_evaluation(
                             "command": [
                                 "python",
                                 "-m",
-                                "inference_hard_tools.evaluation_service.worker",
+                                "nm_hard_tools.evaluation_service.worker",
                             ],
                             "env": env,
                             "resources": {

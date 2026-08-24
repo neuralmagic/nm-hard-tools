@@ -4,7 +4,7 @@ nodeSelector:
   kubernetes.io/arch: amd64
 
 mcpAdapter:
-  # inference-hard-tools supplies a stateless MCP transport sidecar until the
+  # nm-hard-tools supplies a stateless MCP transport sidecar until the
   # independently released benchmark controller exposes native MCP.
   image: ""
   port: 8001

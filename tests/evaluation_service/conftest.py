@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from fastapi.testclient import TestClient
 
-from inference_hard_tools.evaluation_service.api import create_app
-from inference_hard_tools.evaluation_service.config import ServiceSettings
+from nm_hard_tools.evaluation_service.api import create_app
+from nm_hard_tools.evaluation_service.config import ServiceSettings
 
 if TYPE_CHECKING:
     from pathlib import Path

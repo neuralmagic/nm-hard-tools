@@ -17,7 +17,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, StringConstraints, ValidationError
 
-from inference_hard_tools.mcp import McpServer, McpTool, McpToolResult
+from nm_hard_tools.mcp import McpServer, McpTool, McpToolResult
 
 MAX_RESULT_BYTES = 1_048_576
 JobId = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{24}$")]

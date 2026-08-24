@@ -1,0 +1,32 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-08-24-002"
+title = "Rename project to nm-hard-tools"
+status = "done"
+created = "2026-08-24"
+started = "2026-08-24"
+completed = "2026-08-24"
+
+[content]
+description = "Rename the repository and project identity from inference-hard-tools to nm-hard-tools while preserving service-specific command and image names."
+
+[[content.acceptance_criteria]]
+text = "Python distribution and import namespace use nm-hard-tools and nm_hard_tools"
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "Repository documentation and source metadata use nm-hard-tools"
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "GitHub repository is renamed to neuralmagic/nm-hard-tools"
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "Tests, lint, and govctl check pass"
+status = "done"
+category = "chore"

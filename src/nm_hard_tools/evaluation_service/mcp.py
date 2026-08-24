@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, ValidationError
 
-from inference_hard_tools.evaluation_service.models import (
+from nm_hard_tools.evaluation_service.models import (
     ArtifactList,
     EvaluationList,
     EvaluationRef,
@@ -18,10 +18,10 @@ from inference_hard_tools.evaluation_service.models import (
     ListEvaluationsRequest,
     PlanResponse,
 )
-from inference_hard_tools.mcp import McpTool, McpToolResult
+from nm_hard_tools.mcp import McpTool, McpToolResult
 
 if TYPE_CHECKING:
-    from inference_hard_tools.evaluation_service.service import EvaluationService
+    from nm_hard_tools.evaluation_service.service import EvaluationService
 
 
 def _schema(model: type[BaseModel]) -> dict[str, Any]:

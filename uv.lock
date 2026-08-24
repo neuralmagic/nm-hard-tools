@@ -879,42 +879,6 @@ wheels = [
 ]
 
 [[package]]
-name = "inference-hard-tools"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "kubernetes" },
-    { name = "pydantic-settings" },
-    { name = "pyyaml" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-lm-eval-service = [
-    { name = "lm-eval", extra = ["api"] },
-]
-test = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", specifier = ">=0.116,<1" },
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "kubernetes", specifier = ">=33,<35" },
-    { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
-    { name = "pydantic-settings", specifier = ">=2.10,<3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<9" },
-    { name = "pyyaml", specifier = ">=6,<7" },
-    { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12,<1" },
-    { name = "uvicorn", specifier = ">=0.35,<1" },
-]
-provides-extras = ["lm-eval-service", "test"]
-
-[[package]]
 name = "iniconfig"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1384,6 +1348,42 @@ sdist = { url = "https://files.pythonhosted.org/packages/e0/e6/fe51d2bb1a3b446f5
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b6/6d/ebd2af4640b12168fdf0cb74b6118df2f32a2f62ec7e0c06fbfd80706639/nltk-3.10.3-py3-none-any.whl", hash = "sha256:ff9598a8e20518ee0d557745890cc4435b9578489e2dcbc69c4f81fa060caf7c", size = 1798643, upload-time = "2026-08-12T23:44:13.478Z" },
 ]
+
+[[package]]
+name = "nm-hard-tools"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "kubernetes" },
+    { name = "pydantic-settings" },
+    { name = "pyyaml" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+lm-eval-service = [
+    { name = "lm-eval", extra = ["api"] },
+]
+test = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.116,<1" },
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "kubernetes", specifier = ">=33,<35" },
+    { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
+    { name = "pydantic-settings", specifier = ">=2.10,<3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<9" },
+    { name = "pyyaml", specifier = ">=6,<7" },
+    { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12,<1" },
+    { name = "uvicorn", specifier = ">=0.35,<1" },
+]
+provides-extras = ["lm-eval-service", "test"]
 
 [[package]]
 name = "numpy"

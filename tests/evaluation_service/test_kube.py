@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from typing import Any
 
-from inference_hard_tools.evaluation_service.kube import KubernetesClient
+from nm_hard_tools.evaluation_service.kube import KubernetesClient
 
 
 class FakeApiClient:
