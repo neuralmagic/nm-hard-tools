@@ -18,6 +18,15 @@ uv run --extra test ruff format --check src tests
 uv run --extra test ruff check src tests
 ```
 
+Repository governance is stored in `gov/` and validated with
+[`govctl`](https://github.com/govctl-org/govctl):
+
+```bash
+cargo install govctl --version 0.19.1 --locked
+govctl status
+govctl check
+```
+
 The lm-eval image must be built with an explicit Python base image:
 
 ```bash
