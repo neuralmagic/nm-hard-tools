@@ -1,0 +1,22 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-08-24-003"
+title = "Install prebuilt govctl in CI"
+status = "done"
+created = "2026-08-24"
+started = "2026-08-24"
+completed = "2026-08-24"
+
+[content]
+description = "Replace CI's source compilation of govctl with its pinned prebuilt release through taiki-e/install-action and cargo-binstall metadata."
+
+[[content.acceptance_criteria]]
+text = "CI installs the pinned govctl 0.19.1 prebuilt binary"
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "Workflow YAML and govctl check pass"
+status = "done"
+category = "chore"
