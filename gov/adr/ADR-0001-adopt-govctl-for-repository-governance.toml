@@ -1,0 +1,28 @@
+#:schema ../schema/adr.schema.json
+
+[govctl]
+id = "ADR-0001"
+title = "Adopt govctl for repository governance"
+status = "accepted"
+date = "2026-08-24"
+
+[content]
+context = "Architecture and delivery decisions currently live only in source changes, commit history, and conversations. As AI-assisted changes increase, the repository needs a durable, reviewable way to connect requirements, decisions, implementation work, and executable completion checks."
+decision = "Use govctl as the repository governance control plane. Store canonical governance artifacts under gov/, use the smallest artifact path appropriate to each change, require govctl check in CI, and require the govctl consistency guard for governed work items."
+consequences = "Requirements, decisions, and non-trivial work gain durable in-repository traceability and executable completion gates. Contributors and CI need a pinned govctl installation, and governed changes require some additional artifact maintenance. Existing implementation decisions will be backfilled incrementally when they become relevant rather than reconstructed speculatively."
+
+[[content.alternatives]]
+text = "Adopt govctl governance-as-code"
+status = "accepted"
+pros = [
+    "Keeps governance artifacts reviewable beside the code",
+    "Provides lifecycle and executable verification gates",
+]
+cons = ["Adds a tool and artifact workflow for contributors"]
+
+[[content.alternatives]]
+text = "Continue relying on pull requests and conversations"
+status = "rejected"
+pros = ["Introduces no new tooling or process"]
+cons = ["Leaves requirements and decisions fragmented across transient contexts"]
+rejection_reason = "It does not provide durable traceability or executable governance gates."

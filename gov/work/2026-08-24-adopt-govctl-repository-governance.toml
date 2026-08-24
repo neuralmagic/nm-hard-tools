@@ -1,0 +1,33 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-08-24-001"
+title = "Adopt govctl repository governance"
+status = "done"
+created = "2026-08-24"
+started = "2026-08-24"
+completed = "2026-08-24"
+refs = ["ADR-0001"]
+
+[content]
+description = "Initialize govctl for this brownfield repository, document the adoption decision, add a default governance guard, and enforce repository consistency in CI."
+
+[[content.acceptance_criteria]]
+text = "Canonical govctl configuration and schemas are tracked under gov/"
+status = "done"
+category = "added"
+
+[[content.acceptance_criteria]]
+text = "CI installs pinned govctl 0.19.1 and runs govctl check"
+status = "done"
+category = "added"
+
+[[content.acceptance_criteria]]
+text = "Contributor documentation explains how to inspect and validate governance"
+status = "done"
+category = "chore"
+
+[[content.acceptance_criteria]]
+text = "govctl check passes"
+status = "done"
+category = "chore"
