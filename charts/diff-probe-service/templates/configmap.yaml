@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "diffprobe.fullname" . }}
+data:
+  config.yaml: |
+    namespace: {{ .Release.Namespace | quote }}
+    worker_image: {{ include "diffprobe.image" . | quote }}
+    result_claim_name: {{ include "diffprobe.resultClaim" . | quote }}
+    result_root: /var/lib/diff-probe-results
+    request_set_claim_name: {{ required "requestSetStorage.existingClaim is required" .Values.requestSetStorage.existingClaim | quote }}
+    request_set_root: {{ .Values.requestSetStorage.mountPath | quote }}
+    worker_service_account: {{ include "diffprobe.workerServiceAccount" . | quote }}
+    service_instance: {{ .Release.Name | quote }}
+    image_pull_secrets:{{ if not .Values.imagePullSecrets }} []{{ end }}
+    {{- range .Values.imagePullSecrets }}
+      - {{ required "imagePullSecrets entries require name" .name | quote }}
+    {{- end }}
+    node_selector:
+{{ toYaml .Values.nodeSelector | indent 6 }}
+    cpu_request: {{ .Values.worker.resources.requests.cpu | quote }}
+    cpu_limit: {{ .Values.worker.resources.limits.cpu | quote }}
+    memory_request: {{ .Values.worker.resources.requests.memory | quote }}
+    memory_limit: {{ .Values.worker.resources.limits.memory | quote }}
+    worker_cache_size_limit: {{ .Values.worker.cacheSizeLimit | quote }}
+    mutation_rate_limit_per_minute: {{ .Values.auth.mutationRateLimitPerMinute }}
+    allowed_origins:
+{{ toYaml .Values.auth.allowedOrigins | indent 6 }}
+    targets:
+{{ toYaml .Values.targets | indent 6 }}
+    request_sets:
+{{ toYaml .Values.requestSets | indent 6 }}

@@ -1,0 +1,38 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "diffprobe.controllerNetworkPolicy" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "diffprobe.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: controller
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace | quote }}
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+{{ toYaml .Values.networkPolicy.controllerEgress | indent 4 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "diffprobe.workerNetworkPolicy" . }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: diff-probe
+      app.kubernetes.io/managed-by: diff-probe-service
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress:
+{{ toYaml .Values.networkPolicy.workerEgress | indent 4 }}
+{{- end }}

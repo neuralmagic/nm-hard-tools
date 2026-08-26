@@ -81,10 +81,17 @@ class MutationGuard:
 class RequestGateMiddleware:
     """Authenticate mutations, then stream request bodies into a fixed bound."""
 
-    def __init__(self, app: Any, guard: MutationGuard, max_body_bytes: int) -> None:
+    def __init__(
+        self,
+        app: Any,
+        guard: MutationGuard,
+        max_body_bytes: int,
+        protected_prefix: str = "/v1/evaluations",
+    ) -> None:
         self.app = app
         self.guard = guard
         self.max_body_bytes = max_body_bytes
+        self.protected_prefix = protected_prefix
 
     async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
         if scope.get("type") != "http":
@@ -98,8 +105,8 @@ class RequestGateMiddleware:
         }
         protected = (
             path == "/mcp"
-            or (path == "/v1/evaluations" and method == "POST")
-            or (path.startswith("/v1/evaluations/") and method == "DELETE")
+            or (path == self.protected_prefix and method == "POST")
+            or (path.startswith(f"{self.protected_prefix}/") and method == "DELETE")
         )
         if protected:
             try:

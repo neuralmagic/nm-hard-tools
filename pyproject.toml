@@ -24,6 +24,7 @@ test = [
 [project.scripts]
 inference-hard-forward-benchmark-mcp = "nm_hard_tools.main:forward_benchmark_mcp"
 inference-hard-lm-eval-service = "nm_hard_tools.evaluation_service.api:main"
+inference-hard-diff-probe-service = "nm_hard_tools.diff_probe.api:main"
 
 [build-system]
 requires = ["hatchling"]

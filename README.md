@@ -7,8 +7,10 @@ images, and Helm charts.
 Included services:
 
 - a profiled `lm-evaluation-harness` controller and worker;
+- a differential correctness / serve-and-smoke probe controller and worker
+  ([docs](docs/diff-probe-service.md));
 - a bounded MCP adapter for the vLLM forward-pass benchmark service;
-- deployment charts for lm-eval, forward-pass, Nyann, and AgentX.
+- deployment charts for lm-eval, diff-probe, forward-pass, Nyann, and AgentX.
 
 ## Development
 
@@ -27,7 +29,8 @@ govctl status
 govctl check
 ```
 
-The lm-eval image must be built with an explicit Python base image:
+The lm-eval and diff-probe images must be built with an explicit Python base
+image:
 
 ```bash
 podman build -f Dockerfile.lm-eval-service \

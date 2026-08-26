@@ -1,0 +1,24 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS builder
+
+ARG UV_VERSION=0.7.3
+RUN python -m pip install --no-cache-dir "uv==${UV_VERSION}"
+WORKDIR /src
+COPY pyproject.toml uv.lock README.md ./
+COPY src ./src
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN uv sync --frozen --no-dev --no-editable
+
+FROM ${BASE_IMAGE}
+ARG SOURCE_REVISION=unknown
+RUN groupadd --gid 65532 diff-probe \
+    && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin diff-probe
+LABEL org.opencontainers.image.source="https://github.com/neuralmagic/nm-hard-tools" \
+      org.opencontainers.image.revision="${SOURCE_REVISION}"
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH \
+    HOME=/tmp
+USER 65532:65532
+EXPOSE 8080
+ENTRYPOINT ["inference-hard-diff-probe-service"]
