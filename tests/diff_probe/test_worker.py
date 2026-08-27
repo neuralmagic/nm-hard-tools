@@ -263,3 +263,110 @@ def test_transport_failure_fails_the_probe_with_a_durable_report(
     assert report.terminal_state == "failed"
     assert "failed after 3 attempts" in (report.error or "")
     assert (output / "error.txt").exists()
+
+
+# --- the real Endpoint transport against httpx MockTransport -------------------
+
+
+def endpoint_with(handler) -> worker.Endpoint:
+    import httpx
+
+    endpoint = worker.Endpoint(
+        {
+            "url": "http://target/v1/chat/completions",
+            "identity": "http://target/v1/chat/completions",
+            "tls_verify": True,
+            "api_key_env": "OPENAI_API_KEY_A",
+        },
+        30.0,
+    )
+    endpoint.client = httpx.Client(transport=httpx.MockTransport(handler))
+    return endpoint
+
+
+ROW = {"messages": [{"role": "user", "content": "hi"}]}
+
+
+def test_endpoint_parses_a_chat_response() -> None:
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        assert body["temperature"] == 0.0
+        assert body["max_tokens"] == 64
+        return httpx.Response(
+            200,
+            json={
+                "choices": [{"message": {"content": "A cat."}, "finish_reason": "stop"}]
+            },
+        )
+
+    text, finish = endpoint_with(handler).generate("chat", "m", ROW, 64)
+    assert (text, finish) == ("A cat.", "stop")
+
+
+def test_endpoint_retries_then_fails_loud() -> None:
+    import httpx
+
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(503, text="overloaded")
+
+    with pytest.raises(ProbeFailure, match="failed after 3 attempts"):
+        endpoint_with(handler).generate("chat", "m", ROW, 64)
+    assert calls["n"] == 3
+
+
+def test_endpoint_refuses_an_oversized_response() -> None:
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {"content": "x" * (worker.MAX_RESPONSE_BYTES + 100)},
+                        "finish_reason": "stop",
+                    }
+                ]
+            },
+        )
+
+    with pytest.raises(ProbeFailure, match="oversized"):
+        endpoint_with(handler).generate("chat", "m", ROW, 64)
+
+
+def test_endpoint_treats_empty_choices_as_empty_text() -> None:
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": []})
+
+    text, finish = endpoint_with(handler).generate("chat", "m", ROW, 64)
+    assert text == "" and finish is None
+
+
+def test_endpoint_treats_null_content_as_empty_text() -> None:
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": None}, "finish_reason": "stop"}]},
+        )
+
+    text, _ = endpoint_with(handler).generate("chat", "m", ROW, 64)
+    assert text == ""
+
+
+def test_endpoint_malformed_json_retries_then_fails() -> None:
+    import httpx
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>gateway error</html>")
+
+    with pytest.raises(ProbeFailure, match="failed after 3 attempts"):
+        endpoint_with(handler).generate("chat", "m", ROW, 64)
