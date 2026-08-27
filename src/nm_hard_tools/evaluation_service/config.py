@@ -127,6 +127,7 @@ class ServiceSettings(BaseModel):
     result_claim_name: StrictName
     result_root: str = "/var/lib/lm-eval-results"
     worker_service_account: StrictName = "lm-eval-worker"
+    local_queue: StrictName | None = None
     service_instance: StrictName = "lm-eval-service"
     image_pull_secrets: list[StrictName] = Field(default_factory=list, max_length=16)
     node_selector: dict[str, str] = Field(default_factory=dict, max_length=32)

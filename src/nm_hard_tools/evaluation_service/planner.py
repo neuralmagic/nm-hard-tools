@@ -110,6 +110,7 @@ def plan_evaluation(
         "dataset_token_secret_key": dataset_token_secret_key,
         "namespace": settings.namespace,
         "worker_service_account": settings.worker_service_account,
+        "local_queue": settings.local_queue,
         "service_instance": settings.service_instance,
         "image_pull_secrets": settings.image_pull_secrets,
         "node_selector": settings.node_selector,
@@ -189,6 +190,7 @@ def plan_evaluation(
         "job_configuration": {
             "namespace": settings.namespace,
             "service_account": settings.worker_service_account,
+            "local_queue": settings.local_queue,
             "service_instance": settings.service_instance,
             "image_pull_secrets": settings.image_pull_secrets,
             "node_selector": settings.node_selector,
@@ -304,6 +306,8 @@ def plan_evaluation(
         "evaluation.lm-eval.io/evaluation-id": evaluation,
         "evaluation.lm-eval.io/profile": request.profile,
     }
+    if settings.local_queue:
+        labels["kueue.x-k8s.io/queue-name"] = settings.local_queue
     volume_mounts = [
         {"name": "results", "mountPath": settings.result_root},
         {"name": "tmp", "mountPath": "/tmp"},
@@ -345,6 +349,7 @@ def plan_evaluation(
             "annotations": annotations,
         },
         "spec": {
+            "suspend": bool(settings.local_queue),
             "backoffLimit": 0,
             "activeDeadlineSeconds": request.timeout_seconds + 60,
             "template": {

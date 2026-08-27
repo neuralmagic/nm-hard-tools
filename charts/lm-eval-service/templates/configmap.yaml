@@ -9,6 +9,9 @@ data:
     result_claim_name: {{ include "lmeval.resultClaim" . | quote }}
     result_root: /var/lib/lm-eval-results
     worker_service_account: {{ include "lmeval.workerServiceAccount" . | quote }}
+    {{- if .Values.scheduling.localQueue }}
+    local_queue: {{ .Values.scheduling.localQueue | quote }}
+    {{- end }}
     service_instance: {{ .Release.Name | quote }}
     image_pull_secrets:
     {{- range .Values.imagePullSecrets }}

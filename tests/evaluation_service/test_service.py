@@ -61,6 +61,28 @@ def test_plan_is_exact_bounded_and_side_effect_free(
     assert job["metadata"]["labels"]["evaluation.lm-eval.io/profile"] == "gsm8k"
 
 
+def test_kueue_job_is_suspended_and_queue_is_part_of_plan_identity(
+    settings: ServiceSettings,
+    kube: FakeKubernetes,
+    request_body: dict[str, Any],
+) -> None:
+    request = EvaluationRequest.model_validate(request_body)
+    baseline = EvaluationService(settings, kube).plan(request)
+    queued_settings = settings.model_copy(update={"local_queue": "h200-queue"})
+    queued = EvaluationService(queued_settings, kube).plan(request)
+
+    assert queued.plan_sha256 != baseline.plan_sha256
+    assert queued.evaluation_id != baseline.evaluation_id
+    assert queued.effective_configuration["job_configuration"]["local_queue"] == (
+        "h200-queue"
+    )
+    job = queued.resources[0]
+    assert job["spec"]["suspend"] is True
+    assert job["metadata"]["labels"]["kueue.x-k8s.io/queue-name"] == (
+        "h200-queue"
+    )
+
+
 def test_plan_identity_includes_resolved_operator_configuration(
     settings: ServiceSettings,
     kube: FakeKubernetes,

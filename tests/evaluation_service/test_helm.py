@@ -105,6 +105,14 @@ def test_node_selector_reaches_controller_and_worker_config() -> None:
     assert settings["node_selector"] == {"kubernetes.io/arch": "amd64"}
 
 
+def test_local_queue_reaches_worker_config() -> None:
+    documents = _render("evals", "--set=scheduling.localQueue=h200-queue")
+    config_map = next(item for item in documents if item["kind"] == "ConfigMap")
+    settings = yaml.safe_load(config_map["data"]["config.yaml"])
+
+    assert settings["local_queue"] == "h200-queue"
+
+
 def test_chart_has_no_personal_image_or_target_defaults() -> None:
     values = yaml.safe_load((CHART / "values.yaml").read_text())
     assert values["image"]["repository"] == ""

@@ -44,6 +44,10 @@ worker:
       cpu: "4"
       memory: 8Gi
 
+scheduling:
+  # When set, evaluation Jobs are created suspended for Kueue admission.
+  localQueue: ""
+
 persistence:
   existingClaim: ""
   accessModes: [ReadWriteMany]
