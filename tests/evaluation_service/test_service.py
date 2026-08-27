@@ -78,9 +78,7 @@ def test_kueue_job_is_suspended_and_queue_is_part_of_plan_identity(
     )
     job = queued.resources[0]
     assert job["spec"]["suspend"] is True
-    assert job["metadata"]["labels"]["kueue.x-k8s.io/queue-name"] == (
-        "h200-queue"
-    )
+    assert job["metadata"]["labels"]["kueue.x-k8s.io/queue-name"] == ("h200-queue")
 
 
 def test_plan_identity_includes_resolved_operator_configuration(
