@@ -105,6 +105,7 @@ All objects reject unknown fields:
 {
   "target": "logical-target-name",
   "model": "served-model-name",
+  "idempotency_key": "nightly-20260828:gemma-bf16",
   "profile": "gsm8k",
   "num_fewshot": null,
   "limit": null,
@@ -115,8 +116,10 @@ All objects reject unknown fields:
 }
 ```
 
-Null `num_fewshot` and `generation_limit` select profile defaults. The plan
-records both requested and resolved values. REST operations remain under
+`idempotency_key` namespaces otherwise identical evaluations while preserving
+idempotent retries for the same key. Null `num_fewshot` and
+`generation_limit` select profile defaults. The plan records both requested
+and resolved values. REST operations remain under
 `/v1/evaluations`; evaluation IDs are `eval-` plus 20 lowercase hexadecimal
 characters. Plan, submit, list, get, cancel, artifacts, report, and bounded-log
 operations have the same lifecycle semantics as the original GSM8K service.

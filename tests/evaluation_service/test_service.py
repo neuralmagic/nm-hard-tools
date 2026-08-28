@@ -114,6 +114,37 @@ def test_plan_identity_includes_resolved_operator_configuration(
     assert fourth.plan_sha256 != first.plan_sha256
 
 
+def test_idempotency_key_namespaces_identical_evaluations(
+    settings: ServiceSettings,
+    kube: FakeKubernetes,
+    request_body: dict[str, Any],
+) -> None:
+    service = EvaluationService(settings, kube)
+    first = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-bf16"}
+        )
+    )
+    retry = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-bf16"}
+        )
+    )
+    second_case = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-nvfp4"}
+        )
+    )
+
+    assert retry.evaluation_id == first.evaluation_id
+    assert second_case.evaluation_id != first.evaluation_id
+    assert second_case.request_sha256 != first.request_sha256
+    assert (
+        first.effective_configuration["lm_eval_invocation"]
+        == second_case.effective_configuration["lm_eval_invocation"]
+    )
+
+
 def test_profile_defaults_bounds_and_unknown_profile(
     settings: ServiceSettings,
     kube: FakeKubernetes,
