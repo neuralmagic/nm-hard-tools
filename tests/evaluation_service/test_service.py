@@ -84,6 +84,21 @@ def test_kueue_job_is_suspended_and_queue_is_part_of_plan_identity(
     assert job["metadata"]["labels"]["kueue.x-k8s.io/queue-name"] == ("h200-queue")
 
 
+def test_kueue_suspension_remains_pending_until_admission(
+    settings: ServiceSettings,
+    kube: FakeKubernetes,
+    request_body: dict[str, Any],
+) -> None:
+    queued_settings = settings.model_copy(update={"local_queue": "h200-queue"})
+    service = EvaluationService(queued_settings, kube)
+
+    submitted = service.submit(EvaluationRequest.model_validate(request_body))
+
+    assert kube.jobs[submitted.evaluation_id]["spec"]["suspend"] is True
+    assert submitted.state == "pending"
+    assert service.get(submitted.evaluation_id).state == "pending"
+
+
 def test_plan_identity_includes_resolved_operator_configuration(
     settings: ServiceSettings,
     kube: FakeKubernetes,

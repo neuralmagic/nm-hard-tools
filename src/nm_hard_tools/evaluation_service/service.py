@@ -303,7 +303,6 @@ class EvaluationService:
         metadata = job.get("metadata", {})
         status = job.get("status") or {}
         annotations = self._annotations(job)
-        spec = job.get("spec") or {}
         state = "pending"
         message = None
         terminal_condition = None
@@ -324,8 +323,6 @@ class EvaluationService:
             message = "cancelled by operator"
         if state == "pending" and (status.get("active") or 0) > 0:
             state = "running"
-        if state == "pending" and _field(spec, "suspend") is True:
-            state = "cancelled"
         if state == "cancelled":
             report_path = self.artifacts.path(metadata["name"], "report.json")
             if report_path.exists():
