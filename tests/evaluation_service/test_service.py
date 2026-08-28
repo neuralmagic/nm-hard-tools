@@ -44,7 +44,10 @@ def test_plan_is_exact_bounded_and_side_effect_free(
     assert pod_spec["automountServiceAccountToken"] is False
     assert pod_spec["imagePullSecrets"] == [{"name": "registry-pull"}]
     assert pod_spec["nodeSelector"] == {"kubernetes.io/arch": "amd64"}
-    assert pod_spec["securityContext"]["fsGroup"] == 65532
+    assert pod_spec["securityContext"]["runAsNonRoot"] is True
+    assert "runAsUser" not in pod_spec["securityContext"]
+    assert "runAsGroup" not in pod_spec["securityContext"]
+    assert "fsGroup" not in pod_spec["securityContext"]
     env = {item["name"]: item for item in pod_spec["containers"][0]["env"]}
     assert env["HF_HOME"]["value"] == "/tmp/huggingface"
     assert env["HF_DATASETS_CACHE"]["value"] == "/tmp/huggingface/datasets"

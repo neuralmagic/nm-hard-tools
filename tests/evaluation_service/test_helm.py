@@ -42,6 +42,17 @@ def test_config_changes_controller_pod_checksum() -> None:
     assert checksum(first) != checksum(second)
 
 
+def test_controller_allows_openshift_to_assign_namespace_uid() -> None:
+    documents = _render("gsm8k")
+    deployment = next(item for item in documents if item["kind"] == "Deployment")
+    security = deployment["spec"]["template"]["spec"]["securityContext"]
+
+    assert security["runAsNonRoot"] is True
+    assert "runAsUser" not in security
+    assert "runAsGroup" not in security
+    assert "fsGroup" not in security
+
+
 def test_long_release_renders_valid_generated_names() -> None:
     documents = _render("r" * 53)
     assert all(len(item["metadata"]["name"]) <= 63 for item in documents)
