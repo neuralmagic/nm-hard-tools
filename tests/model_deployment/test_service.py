@@ -16,6 +16,8 @@ from nm_hard_tools.model_deployment.renderer import (
 from nm_hard_tools.model_deployment.runtime import RuntimeFailure
 from nm_hard_tools.model_deployment.service import DeployFailure, DeploymentService
 
+FIXTURES = Path(__file__).parent / "fixtures"
+
 
 class FakeRenderer:
     def render(self, _source: str) -> RenderedDeployment:
@@ -129,3 +131,43 @@ def test_invalid_operator_context_has_distinct_nonretryable_error(
     assert raised.value.code == "INVALID_OPERATOR_CONFIGURATION"
     assert raised.value.retryable is False
     assert raised.value.deployment_id is None
+
+
+def test_unschedulable_lws_name_is_rejected_without_touching_the_cluster(
+    tmp_path: Path,
+) -> None:
+    """An over-long LeaderWorkerSet name must never reach the create boundary."""
+
+    pytest.importorskip("manifesto")
+    profile = tmp_path / "cluster.yaml"
+    profile.write_text((FIXTURES / "cluster.yaml").read_text(), encoding="utf-8")
+    token = tmp_path / "token"
+    token.write_text("secret")
+    runtime = FakeRuntime()
+    service = DeploymentService(
+        DeploymentSettings(
+            cluster_profile=profile,
+            namespace="models",
+            bearer_token_file=token,
+            readiness_timeout_seconds=30,
+        ),
+        runtime,
+    )
+    source = (
+        (FIXTURES / "model.yaml")
+        .read_text()
+        .replace(
+            "  - name: decode\n",
+            "  - name: decode-with-a-very-long-role-name\n"
+            "    workload: leaderworkerset\n",
+        )
+    )
+
+    with pytest.raises(DeployFailure) as raised:
+        service.deploy(source)
+
+    assert raised.value.code == "INVALID_MANIFESTO_CONFIG"
+    assert raised.value.retryable is False
+    assert raised.value.deployment_id is None
+    assert raised.value.field == "roles[0].name"
+    assert runtime.calls == 0

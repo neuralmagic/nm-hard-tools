@@ -68,7 +68,9 @@ FORBIDDEN_KEYS = {
 
 
 class ManifestoConfigError(ValueError):
-    pass
+    def __init__(self, message: str, *, field: str | None = None) -> None:
+        super().__init__(message)
+        self.field = field
 
 
 class OperatorConfigurationError(ValueError):
@@ -182,6 +184,20 @@ class WorkloadExpectation:
 
 
 @dataclass(frozen=True)
+class NameBudget:
+    """How a rendered workload name divides between operator and caller input.
+
+    Attributes:
+        operator_prefix_length: Characters of the name, separator included, that
+            the operator render context fixes and no caller field can shorten.
+        caller_field: Path of the caller field that supplies the remainder.
+    """
+
+    operator_prefix_length: int
+    caller_field: str
+
+
+@dataclass(frozen=True)
 class RenderedDeployment:
     manifesto_digest: str
     intent_digest: str
@@ -218,7 +234,9 @@ class ManifestoRenderer:
                 f"nm-hard-tools-deploy-v3\0{intent_digest}\0{context_id}".encode()
             )
             deployment_id = "hard-" + hashlib.sha256(identity_bytes).hexdigest()[:24]
-            objects, endpoint = self._render_manifesto(parsed, deployment_id, cluster)
+            objects, endpoint, name_budgets = self._render_manifesto(
+                parsed, deployment_id, cluster
+            )
         except ManifestoConfigError:
             raise
         except Exception as exc:
@@ -237,7 +255,7 @@ class ManifestoRenderer:
                     f"rendered resource kind is not allowed: {obj.get('kind')}"
                 )
             metadata = obj.setdefault("metadata", {})
-            _validate_queue_managed_lws_name(obj)
+            _validate_lws_name_fits_kueue_label(obj, name_budgets)
             if (
                 metadata.get("namespace", self.settings.namespace)
                 != self.settings.namespace
@@ -286,7 +304,7 @@ class ManifestoRenderer:
 
     def _render_manifesto(
         self, parsed: dict[str, Any], deployment_id: str, cluster: Any
-    ) -> tuple[list[dict[str, Any]], str]:
+    ) -> tuple[list[dict[str, Any]], str, dict[str, NameBudget]]:
         from manifesto.instance import Instance
         from manifesto.render import render
         from manifesto.render.routing import gateway_name, standalone_service_name
@@ -334,7 +352,7 @@ class ManifestoRenderer:
             f"http://{service}.{self.settings.namespace}.svc.cluster.local:{port}"
             "/v1/models"
         )
-        return objects, endpoint
+        return objects, endpoint, _name_budgets(spec, instance)
 
     def _load_cluster(self) -> Any:
         from manifesto.cluster import load_cluster
@@ -402,17 +420,70 @@ def _intent_digest(parsed: dict[str, Any]) -> str:
     ).hexdigest()
 
 
-def _validate_queue_managed_lws_name(obj: dict[str, Any]) -> None:
+def _name_budgets(spec: Any, instance: Any) -> dict[str, NameBudget]:
+    """Split every rendered workload name into operator and caller components.
+
+    The single-character probe names measure exactly the part of a rendered name
+    that the operator render context fixes, without depending on Manifesto's
+    private slug helpers.
+    """
+
+    budgets: dict[str, NameBudget] = {}
+    for index, role in enumerate(spec.roles):
+        if role.workload_name:
+            name = instance.user_scoped_name(role.workload_name)
+            prefix_length = len(instance.user_scoped_name("x")) - 1
+            field = f"roles[{index}].workload_name"
+        else:
+            name = instance.name(role.name)
+            prefix_length = len(instance.name("x")) - 1
+            field = f"roles[{index}].name"
+        budgets[name] = NameBudget(prefix_length, field)
+    return budgets
+
+
+def _validate_lws_name_fits_kueue_label(
+    obj: dict[str, Any], budgets: dict[str, NameBudget]
+) -> None:
+    """Reject a LeaderWorkerSet whose name cannot become a Kueue label value.
+
+    Kueue copies the LeaderWorkerSet name into its Workload name and then into a
+    pod label value. An over-long name is admitted by the API server but never
+    associated with a Workload, so the pods stay scheduling-gated forever. The
+    check is unconditional: whether the target namespace is queue managed is a
+    property of the cluster, not of the rendered object, so a rendered object
+    without `KUEUE_QUEUE_LABEL` is no proof that Kueue will leave it alone.
+
+    Raises:
+        ManifestoConfigError: A caller field can be shortened to fit.
+        OperatorConfigurationError: The operator-derived prefix alone overflows,
+            so no caller field can fix it.
+    """
+
     if obj.get("kind") != "LeaderWorkerSet":
         return
-    metadata = obj.get("metadata", {})
-    if KUEUE_QUEUE_LABEL not in metadata.get("labels", {}):
+    name = str(obj.get("metadata", {}).get("name", ""))
+    length = len(name.encode("utf-8"))
+    if length <= KUEUE_LWS_NAME_MAX:
         return
-    name = str(metadata.get("name", ""))
-    if len(name.encode("utf-8")) > KUEUE_LWS_NAME_MAX:
-        raise ManifestoConfigError(
-            "queue-managed LeaderWorkerSet name exceeds the Kueue label-safe limit"
+    detail = (
+        f"rendered LeaderWorkerSet name {name!r} is {length} characters; Kueue "
+        "copies it into the 'leaderworkerset-<name>-<group>-<replica>' Workload "
+        f"label value, so it must be at most {KUEUE_LWS_NAME_MAX} characters"
+    )
+    budget = budgets.get(name)
+    if budget is None or budget.operator_prefix_length >= KUEUE_LWS_NAME_MAX:
+        raise OperatorConfigurationError(
+            f"{detail}. The operator-derived name prefix already uses "
+            f"{budget.operator_prefix_length if budget else length} of them, so no "
+            "caller field can shorten it; set naming.user_prefix to false in the "
+            "cluster profile or shorten the operator deployment identity policy."
         )
+    raise ManifestoConfigError(
+        f"{detail}. Shorten {budget.caller_field} to at most "
+        f"{KUEUE_LWS_NAME_MAX - budget.operator_prefix_length} characters.",
+        field=budget.caller_field,
+    )
 
 
 def _annotate_pod_templates(

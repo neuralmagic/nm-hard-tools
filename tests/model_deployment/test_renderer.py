@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from nm_hard_tools.model_deployment.config import DeploymentSettings
 from nm_hard_tools.model_deployment.renderer import (
@@ -11,11 +12,64 @@ from nm_hard_tools.model_deployment.renderer import (
     OWNER_ANNOTATION,
     ManifestoConfigError,
     ManifestoRenderer,
-    _validate_queue_managed_lws_name,
+    NameBudget,
+    OperatorConfigurationError,
+    RenderedDeployment,
+    _validate_lws_name_fits_kueue_label,
     parse_manifesto_config,
 )
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+# The rendered LeaderWorkerSet name is a function of these operator knobs, the
+# derived deployment identity, and the caller role name.
+OPERATOR_PROFILE_NAMES = ["ci", "pirate-tms-hard-tools-backport"]
+
+
+def operator_cluster_profile(
+    tmp_path: Path,
+    *,
+    profile_name: str = "test-stateless-b200",
+    user_prefix: bool = False,
+    local_queue: str | None = None,
+) -> Path:
+    profile = yaml.safe_load((FIXTURES / "cluster.yaml").read_text())
+    profile["name"] = profile_name
+    profile["naming"] = {"user_prefix": user_prefix}
+    if local_queue is not None:
+        profile["kueue"] = {"local_queue": local_queue}
+    path = tmp_path / "cluster.yaml"
+    path.write_text(yaml.safe_dump(profile), encoding="utf-8")
+    return path
+
+
+def renderer_for(tmp_path: Path, cluster_profile: Path) -> ManifestoRenderer:
+    token = tmp_path / "token"
+    token.write_text("secret")
+    return ManifestoRenderer(
+        DeploymentSettings(
+            cluster_profile=cluster_profile.resolve(),
+            namespace="models",
+            bearer_token_file=token.resolve(),
+            readiness_timeout_seconds=30,
+        )
+    )
+
+
+def lws_source(role_name: str) -> str:
+    return (
+        (FIXTURES / "model.yaml")
+        .read_text()
+        .replace(
+            "  - name: decode\n",
+            f"  - name: {role_name}\n    workload: leaderworkerset\n",
+        )
+    )
+
+
+def lws_name(rendered: RenderedDeployment) -> str:
+    workload = next(obj for obj in rendered.objects if obj["kind"] == "LeaderWorkerSet")
+    return str(workload["metadata"]["name"])
 
 
 def test_safe_manifesto_yaml_accepts_one_self_contained_document() -> None:
@@ -123,16 +177,102 @@ def test_pinned_manifesto_renders_explicit_single_node_lws(tmp_path: Path) -> No
     assert any(resource.kind == "LeaderWorkerSet" for resource in rendered.resources)
 
 
-def test_queue_managed_lws_rejects_name_that_cannot_fit_kueue_label() -> None:
-    with pytest.raises(ManifestoConfigError, match="Kueue label-safe limit"):
-        _validate_queue_managed_lws_name(
+@pytest.mark.parametrize("profile_name", OPERATOR_PROFILE_NAMES)
+@pytest.mark.parametrize("user_prefix", [False, True])
+@pytest.mark.parametrize("local_queue", ["models-queue", None])
+def test_operator_naming_knobs_keep_the_lws_name_within_the_kueue_limit(
+    tmp_path: Path, profile_name: str, user_prefix: bool, local_queue: str | None
+) -> None:
+    """No operator profile may make an ordinary role render an unusable name."""
+
+    pytest.importorskip("manifesto")
+    renderer = renderer_for(
+        tmp_path,
+        operator_cluster_profile(
+            tmp_path,
+            profile_name=profile_name,
+            user_prefix=user_prefix,
+            local_queue=local_queue,
+        ),
+    )
+
+    name = lws_name(renderer.render(lws_source("decode")))
+
+    assert len(name.encode()) <= KUEUE_LWS_NAME_MAX
+    assert len(f"leaderworkerset-{name}-0-00000".encode()) <= 63
+
+
+@pytest.mark.parametrize("user_prefix", [False, True])
+@pytest.mark.parametrize("local_queue", ["models-queue", None])
+@pytest.mark.parametrize("overshoot", [-1, 0, 1])
+def test_lws_name_is_label_safe_or_rejected_before_any_mutation(
+    tmp_path: Path, user_prefix: bool, local_queue: str | None, overshoot: int
+) -> None:
+    """Every rendered name either fits the Kueue budget or is rejected.
+
+    The operator-derived prefix is measured from a one-character role name so
+    the boundary is exercised exactly at the limit and one character either
+    side without restating how the renderer composes names. `local_queue` is a
+    knob because whether Kueue manages the namespace is a property of the
+    cluster, not of the rendered object: an unlabelled render is no proof that
+    the name will not become a Kueue Workload label value.
+    """
+
+    pytest.importorskip("manifesto")
+    renderer = renderer_for(
+        tmp_path,
+        operator_cluster_profile(
+            tmp_path, user_prefix=user_prefix, local_queue=local_queue
+        ),
+    )
+    operator_prefix = len(lws_name(renderer.render(lws_source("d")))) - 1
+    role_name = "d" * (KUEUE_LWS_NAME_MAX - operator_prefix + overshoot)
+
+    if overshoot > 0:
+        with pytest.raises(
+            (ManifestoConfigError, OperatorConfigurationError)
+        ) as rejected:
+            renderer.render(lws_source(role_name))
+        assert str(KUEUE_LWS_NAME_MAX) in str(rejected.value)
+        return
+
+    name = lws_name(renderer.render(lws_source(role_name)))
+    assert len(name.encode()) == KUEUE_LWS_NAME_MAX + overshoot
+
+
+def test_over_long_name_names_the_caller_field_that_can_be_shortened(
+    tmp_path: Path,
+) -> None:
+    pytest.importorskip("manifesto")
+    renderer = renderer_for(tmp_path, operator_cluster_profile(tmp_path))
+
+    with pytest.raises(ManifestoConfigError) as rejected:
+        renderer.render(lws_source("decode-with-a-very-long-role-name"))
+
+    assert rejected.value.field == "roles[0].name"
+    assert "must be at most 39 characters" in str(rejected.value)
+    assert "Shorten roles[0].name" in str(rejected.value)
+
+
+def test_live_incident_user_prefixed_lws_name_is_operator_configuration() -> None:
+    """The 2026-09-01 incident name, which no caller field could shorten.
+
+    A profile with `naming: {user_prefix: true}` rendered
+    `nm-hard-tools-hard-5123293dffec656c9d7c5f26-decode`; the operator-derived
+    prefix alone is 44 characters, so the caller has no field to correct.
+    """
+
+    incident = "nm-hard-tools-hard-5123293dffec656c9d7c5f26-decode"
+    assert len(incident) == 50
+
+    with pytest.raises(OperatorConfigurationError, match="naming.user_prefix"):
+        _validate_lws_name_fits_kueue_label(
+            {"kind": "LeaderWorkerSet", "metadata": {"name": incident}},
             {
-                "kind": "LeaderWorkerSet",
-                "metadata": {
-                    "name": "x" * (KUEUE_LWS_NAME_MAX + 1),
-                    "labels": {"kueue.x-k8s.io/queue-name": "models"},
-                },
-            }
+                incident: NameBudget(
+                    len("nm-hard-tools-hard-5123293dffec656c9d7c5f26-"), "roles[0].name"
+                )
+            },
         )
 
 
