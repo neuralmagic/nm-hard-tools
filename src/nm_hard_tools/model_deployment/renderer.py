@@ -19,7 +19,14 @@ from nm_hard_tools.model_deployment.models import ResourceRef
 OWNER_ANNOTATION = "nm-hard-tools.neuralmagic.com/deployment-id"
 DIGEST_ANNOTATION = "nm-hard-tools.neuralmagic.com/desired-state-digest"
 KUEUE_QUEUE_LABEL = "kueue.x-k8s.io/queue-name"
-KUEUE_LWS_NAME_MAX = 63 - len("leaderworkerset--0-00000")
+# Kueue names the Workload for group `i` of a LeaderWorkerSet
+# `leaderworkerset-<lws name>-<i>-<hash>` with a five-character hash, and stores
+# it in a 63-character label value.
+KUEUE_WORKLOAD_NAME_MAX = 63
+KUEUE_WORKLOAD_NAME_OVERHEAD = len("leaderworkerset--00000")
+# The budget for a replica count whose group indices all fit in one digit.
+# `_kueue_lws_name_max` narrows it for the wider indices of a larger LeaderWorkerSet.
+KUEUE_LWS_NAME_MAX = KUEUE_WORKLOAD_NAME_MAX - KUEUE_WORKLOAD_NAME_OVERHEAD - len("-0")
 MAX_YAML_NODES = 10_000
 IMMUTABLE_GIT_REVISION = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
 ALLOWED_RESOURCE_KINDS = {
@@ -442,6 +449,28 @@ def _name_budgets(spec: Any, instance: Any) -> dict[str, NameBudget]:
     return budgets
 
 
+def _kueue_lws_name_max(replicas: int) -> int:
+    """Longest LeaderWorkerSet name Kueue can still turn into a Workload name.
+
+    Kueue names the Workload for group `i` of a LeaderWorkerSet
+    `leaderworkerset-<lws name>-<i>-<hash>` and stores it in a 63-character label
+    value, so the name has to leave room for the widest group index the replica
+    count reaches. A LeaderWorkerSet with 11 or more replicas reaches a
+    two-digit index and gets one character less than a single-replica one.
+
+    Args:
+        replicas: Rendered `spec.replicas` of the LeaderWorkerSet.
+
+    Returns:
+        The inclusive maximum length of the LeaderWorkerSet name.
+    """
+
+    widest_group_index = len(str(max(replicas, 1) - 1))
+    return (
+        KUEUE_WORKLOAD_NAME_MAX - KUEUE_WORKLOAD_NAME_OVERHEAD - 1 - widest_group_index
+    )
+
+
 def _validate_lws_name_fits_kueue_label(
     obj: dict[str, Any], budgets: dict[str, NameBudget]
 ) -> None:
@@ -464,15 +493,16 @@ def _validate_lws_name_fits_kueue_label(
         return
     name = str(obj.get("metadata", {}).get("name", ""))
     length = len(name.encode("utf-8"))
-    if length <= KUEUE_LWS_NAME_MAX:
+    limit = _kueue_lws_name_max(int(obj.get("spec", {}).get("replicas", 1) or 1))
+    if length <= limit:
         return
     detail = (
         f"rendered LeaderWorkerSet name {name!r} is {length} characters; Kueue "
-        "copies it into the 'leaderworkerset-<name>-<group>-<replica>' Workload "
-        f"label value, so it must be at most {KUEUE_LWS_NAME_MAX} characters"
+        "copies it into the 'leaderworkerset-<name>-<group index>-<hash>' Workload "
+        f"label value, so it must be at most {limit} characters"
     )
     budget = budgets.get(name)
-    if budget is None or budget.operator_prefix_length >= KUEUE_LWS_NAME_MAX:
+    if budget is None or budget.operator_prefix_length >= limit:
         raise OperatorConfigurationError(
             f"{detail}. The operator-derived name prefix already uses "
             f"{budget.operator_prefix_length if budget else length} of them, so no "
@@ -481,7 +511,7 @@ def _validate_lws_name_fits_kueue_label(
         )
     raise ManifestoConfigError(
         f"{detail}. Shorten {budget.caller_field} to at most "
-        f"{KUEUE_LWS_NAME_MAX - budget.operator_prefix_length} characters.",
+        f"{limit - budget.operator_prefix_length} characters.",
         field=budget.caller_field,
     )
 
