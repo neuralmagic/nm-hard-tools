@@ -99,21 +99,21 @@ def test_pinned_manifesto_renders_explicit_single_node_lws(tmp_path: Path) -> No
         bearer_token_file=token.resolve(),
         readiness_timeout_seconds=30,
     )
-    source = (FIXTURES / "model.yaml").read_text().replace(
-        "  - name: decode\n",
-        "  - name: decode\n    workload: leaderworkerset\n",
+    source = (
+        (FIXTURES / "model.yaml")
+        .read_text()
+        .replace(
+            "  - name: decode\n",
+            "  - name: decode\n    workload: leaderworkerset\n",
+        )
     )
 
     rendered = ManifestoRenderer(settings).render(source)
 
-    workload = next(
-        obj for obj in rendered.objects if obj["kind"] == "LeaderWorkerSet"
-    )
+    workload = next(obj for obj in rendered.objects if obj["kind"] == "LeaderWorkerSet")
     assert workload["spec"]["leaderWorkerTemplate"]["size"] == 1
     assert rendered.workloads[0].expected_pods == 1
-    assert any(
-        resource.kind == "LeaderWorkerSet" for resource in rendered.resources
-    )
+    assert any(resource.kind == "LeaderWorkerSet" for resource in rendered.resources)
 
 
 def test_release_placeholder_does_not_select_deployment_identity(
