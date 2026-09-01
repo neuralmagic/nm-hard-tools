@@ -74,6 +74,7 @@ def test_pinned_manifesto_renders_one_owned_direct_endpoint(tmp_path: Path) -> N
     rendered = ManifestoRenderer(settings).render(source)
     assert rendered.manifesto_digest
     assert rendered.deployment_id.startswith("hard-")
+    assert len(rendered.deployment_id) == len("hard-") + 24
     assert rendered.endpoint.endswith(".models.svc.cluster.local:8000/v1/models")
     assert len(rendered.workloads) == 1
     assert rendered.workloads[0].expected_pods == 1

@@ -215,7 +215,7 @@ class ManifestoRenderer:
             ) from exc
         try:
             identity_bytes = (
-                f"nm-hard-tools-deploy-v2\0{intent_digest}\0{context_id}".encode()
+                f"nm-hard-tools-deploy-v3\0{intent_digest}\0{context_id}".encode()
             )
             deployment_id = "hard-" + hashlib.sha256(identity_bytes).hexdigest()[:24]
             objects, endpoint = self._render_manifesto(parsed, deployment_id, cluster)

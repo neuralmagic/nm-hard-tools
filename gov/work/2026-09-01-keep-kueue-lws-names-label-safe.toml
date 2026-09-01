@@ -11,6 +11,7 @@ refs = ["RFC-0001"]
 
 [content]
 description = "Keep deterministic hard-tool LeaderWorkerSet resource names within the Kubernetes label limits used by Kueue admission so accepted single-node workloads can be ungated and scheduled."
+notes = ["The label-safe naming policy uses deployment identity domain v3 so upgrades never reinterpret an existing deployment ID as a different Kubernetes resource set."]
 
 [[content.acceptance_criteria]]
 text = "A rendered explicit single-node LeaderWorkerSet produces a Kueue Workload label value no longer than 63 characters."
