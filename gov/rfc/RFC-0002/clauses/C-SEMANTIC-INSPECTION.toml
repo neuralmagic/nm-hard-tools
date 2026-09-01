@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SEMANTIC-INSPECTION"
+title = "Semantic result inspection"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`inspect_evaluation_result` and `inspect_benchmark_result` MUST accept either a first-call object containing the domain operation identifier, a discovered `view_id`, view `parameters`, and optional `page_size`, or a continuation object containing only `cursor`. The server MUST validate parameters against the advertised view schema and MUST return `INVALID_ARGUMENT` field issues for violations. Inspecting before an operation can reach an applicable state MUST return `RESULT_NOT_READY`. Inspecting an operation whose terminal state cannot support the view MUST return `STATE_CONFLICT`. A successful result MUST contain `operation_id`, `view_id`, `view_schema_id`, `view_schema_version`, `as_of`, `summary`, `data`, `completeness`, `completeness_reason`, `omitted_scope`, `has_more`, `next_cursor`, and `source_artifacts`; `data` MUST conform to the advertised `data_schema`. `has_more` MUST be true exactly when `next_cursor` is non-null. Every source artifact entry MUST contain `artifact_ref` and digest. Inspection MUST be read-only. While its cursor, operation, and artifacts remain valid under advertised retention policies, repeating an immutable-view request MUST return semantically identical data."

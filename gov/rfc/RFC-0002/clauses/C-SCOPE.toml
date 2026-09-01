@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SCOPE"
+title = "Scope and non-goals"
+kind = "informative"
+status = "active"
+
+[content]
+text = "This RFC governs MCP discovery, tool naming, input and output schemas, operation lifecycle, artifact access, errors, safety metadata, and compatibility across the evaluation and benchmark services. It does not prescribe private Python types, Kubernetes object layouts, REST routes, storage engines, deployment topology, or agent prompting strategy. MCP is an agent-facing product surface rather than a mechanical projection of an internal API."

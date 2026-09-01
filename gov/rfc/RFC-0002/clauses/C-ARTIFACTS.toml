@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-ARTIFACTS"
+title = "Artifact-oriented detail access"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`list_<domain>_artifacts` MUST return immutable artifact metadata including `artifact_ref`, semantic `artifact_kind`, name, media type, byte size, digest, schema identifier and version when structured, creation time, retention expiry when applicable, query-mode descriptors, and `available_actions`. Each query-mode descriptor MUST contain a discriminant, self-contained parameter and result JSON Schemas, defaults, maximum page size, deterministic ordering, maximum bytes or records scanned, maximum time span when applicable, and execution deadline. Each available action MUST contain a tool name and complete safe arguments for an inspection that can be performed on that artifact. `get_<domain>_report` MUST return the bounded structured terminal report rather than a filesystem path or raw archive. Bulky artifacts SHOULD be exposed as MCP resource links when the negotiated protocol supports them. If direct resource reading is unsupported, the metadata MUST identify the supported retrieval mechanism without exposing credentials. An operation or artifact removed under the advertised retention policy MUST return `REFERENCE_EXPIRED`; a reference that never existed or is not visible to the caller MUST return `NOT_FOUND` without revealing which condition applies."

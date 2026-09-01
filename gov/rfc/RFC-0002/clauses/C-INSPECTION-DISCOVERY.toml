@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INSPECTION-DISCOVERY"
+title = "Discoverable inspection views"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Each capability catalog MUST advertise every supported result view. A view descriptor MUST contain stable `view_id`, `title`, `description`, applicable operation states, required artifact kinds, self-contained JSON Schema 2020-12 `parameters_schema` and `data_schema`, `supports_comparison`, default and maximum page sizes, deterministic default ordering, and a stability value of `live` or `immutable`. A comparison-enabled descriptor MUST additionally define stable alignment keys; comparable measures with field, unit, `ratio_comparable`, and improvement direction of `higher`, `lower`, or `neutral`; fields that MUST be equal for compatibility; and report-only context fields. Alignment keys MUST identify at most one comparable row per operation unless the descriptor defines a deterministic aggregation, its input field, aggregation function, null handling, and output unit. The common view identifiers MUST be `overview`, `configuration`, `provenance`, `metrics`, and `failures`. Both services MUST support every common view. A state-applicable view with no matching data MUST return a complete empty result rather than be omitted. Evaluation-specific views MAY include `samples` and `task_metrics`. Benchmark-specific views MAY include `performance`, `kernels`, `traces`, and `timeline`. View identifiers, schemas, semantic keys, units, and meanings MUST remain compatible under [[RFC-0002:C-COMPATIBILITY]]."

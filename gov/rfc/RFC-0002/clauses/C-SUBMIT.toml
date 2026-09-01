@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SUBMIT"
+title = "Plan-bound idempotent submission"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`submit_<domain>` MUST accept the `plan_ref` produced by `plan_<domain>` and MUST NOT require the caller to repeat the planned request. Submission MUST execute exactly the canonical request identified by `plan_digest`. The first successful submission of a `plan_ref` MUST atomically bind that reference to exactly one operation. Every later authorized submission of that reference, including concurrent submission and submission after plan expiry, MUST return the bound operation rather than create duplicate work. Expiry, staleness, authorization, and feasibility checks apply before the binding is created; a failed pre-binding check MUST create no work and MUST return the applicable error from [[RFC-0002:C-ERRORS]]. Successful submission MUST return the common operation status defined by [[RFC-0002:C-OPERATION-STATUS]]."

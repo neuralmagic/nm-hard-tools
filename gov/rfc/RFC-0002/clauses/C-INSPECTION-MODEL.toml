@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INSPECTION-MODEL"
+title = "Layered result inspection"
+kind = "informative"
+status = "active"
+
+[content]
+text = "Agents normally ask semantic questions such as which metric regressed, why an operation failed, or which configuration produced a result. Artifact filenames and serialization formats are storage concerns, not the primary agent interface. Services therefore expose semantic result views first, bounded structured artifact queries second, and raw resource access as an escape hatch. This preserves a consistent workflow while allowing domain-specific evidence."

@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-CONFORMANCE"
+title = "Agent-journey conformance"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Each service MUST maintain automated conformance coverage for these caller journeys: discover a minimal valid request without external documentation; plan without mutation; concurrently submit the exact plan and bind it to one operation; resubmit the bound plan after expiry without duplicate work; resume a nonterminal operation using only returned identifiers; cancel twice safely; page a fixed listing snapshot without gaps or duplicates while operations change; restart after an invalid cursor; discover and inspect every common semantic result view without knowing artifact filenames; follow an artifact action into a bounded query; page a structured query without gaps or duplicates; compare compatible results with explicit units and baseline; reject incompatible comparison; obtain a raw artifact reference when semantic views are insufficient; correct an invalid field from the returned error; recover from an expired unbound plan; observe retention expiry; and distinguish retryable from non-retryable failure. Conformance MUST validate advertised success schemas, common tool-error fields, annotations, available-action arguments, inspection provenance, completeness markers, and query bounds against observed results and side effects."

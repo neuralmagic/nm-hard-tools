@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-LIST"
+title = "Bounded resumable listing"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`list_<domain-plural>` MUST return bounded operation summaries using deterministic ordering and cursor-based pagination. A first-page request MUST establish a fixed traversal snapshot, and every cursor derived from it MUST traverse each member of that snapshot exactly once in the documented order even when operations are created or updated concurrently. It MUST support filters for identifier, state, creation time, and operator-defined labels when those labels exist. A page MUST state whether more results exist and MUST provide `next_cursor` when they do. A cursor MUST be opaque to callers. An invalid or expired cursor MUST return `INVALID_CURSOR` with a suggested action that restarts the listing. Each summary MUST contain the operation identifier, state, terminal flag, creation and update times, and a concise request identity sufficient to choose an item for `get_<domain>`."

@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-PLAN"
+title = "Exact preview before mutation"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`plan_<domain>` MUST validate and resolve a complete request without creating, queuing, cancelling, or otherwise mutating domain work. A successful plan MUST return an opaque `plan_ref`, a stable `plan_digest`, the canonical resolved request, requested resources, placement or queue implications when applicable, estimated scope, warnings, and `expires_at` when the plan can expire. The canonical resolved request MUST make every applied default visible. The plan result MUST contain enough information for an agent and user to understand the material work that submission would authorize."

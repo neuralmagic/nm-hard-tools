@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INPUT-SCHEMAS"
+title = "Agent-constructible inputs"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Tool inputs MUST use structured JSON fields for semantic values and MUST NOT require YAML, shell fragments, command-line arguments, or an encoded internal request as the primary interface. Every fixed-shape input object MUST reject unknown properties. Fields MUST use semantic names, explicit formats, enums where the choice set is closed, and unit-bearing names such as `timeout_seconds` where a number has a unit. Optional fields MUST declare their default behavior. Secrets MUST NOT be accepted as tool arguments. An input schema MUST include descriptions for fields whose meaning is not evident from the field name."

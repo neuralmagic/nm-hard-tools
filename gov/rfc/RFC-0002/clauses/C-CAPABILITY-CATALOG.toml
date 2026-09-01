@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-CAPABILITY-CATALOG"
+title = "Discoverable operator capabilities"
+kind = "normative"
+status = "active"
+
+[content]
+text = "`get_<domain>_capabilities` MUST be read-only and MUST return the operator-approved choices, defaults, bounds, mutually dependent constraints, enabled optional features, operation and artifact retention periods, result-view descriptors defined by [[RFC-0002:C-INSPECTION-DISCOVERY]], artifact query modes defined by [[RFC-0002:C-ARTIFACT-QUERY]], and a minimal valid request template needed to construct a plan. Choices MUST include stable machine identifiers and short caller-facing descriptions. When a catalog cannot fit in one bounded result, the tool MUST support filtering or cursor pagination and MUST report truncation explicitly. A caller MUST NOT need deployment files, documentation, trial-and-error validation, artifact filenames, or a separate non-MCP API to discover a valid request or inspection."

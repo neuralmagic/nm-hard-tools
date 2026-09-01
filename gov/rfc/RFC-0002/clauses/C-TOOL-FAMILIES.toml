@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-TOOL-FAMILIES"
+title = "Common tool families"
+kind = "normative"
+status = "active"
+
+[content]
+text = "The evaluation server MUST expose `get_evaluation_capabilities`, `plan_evaluation`, `submit_evaluation`, `list_evaluations`, `get_evaluation`, `cancel_evaluation`, `list_evaluation_artifacts`, `get_evaluation_report`, `inspect_evaluation_result`, `query_evaluation_artifact`, and `compare_evaluations`. The forward-benchmark server MUST expose `get_benchmark_capabilities`, `plan_benchmark`, `submit_benchmark`, `list_benchmarks`, `get_benchmark`, `cancel_benchmark`, `list_benchmark_artifacts`, `get_benchmark_report`, `inspect_benchmark_result`, `query_benchmark_artifact`, and `compare_benchmarks`. Additional tools MUST represent a complete caller goal, use a verb-first snake_case name, and MUST NOT require knowledge of an internal route, controller, Job, filename, or storage layout."

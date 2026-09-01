@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-PROTOCOL-DISCOVERY"
+title = "Protocol and server discovery"
+kind = "normative"
+status = "active"
+
+[content]
+text = 'Each server MUST support MCP protocol version `2026-07-28`. Its `server/discover` result MUST expose `supportedVersions`, `capabilities`, `instructions`, `ttlMs`, and `cacheScope` as defined by that protocol version. Every result MUST expose the stable server name and service version in `_meta["io.modelcontextprotocol/serverInfo"].name` and `_meta["io.modelcontextprotocol/serverInfo"].version`. Advertised capabilities MUST match the methods and content types the server actually supports. Requests MUST be independent of conversational or transport session state; any state needed by a later call MUST be represented by an explicit opaque reference returned to the caller. Server instructions MUST state the preferred workflow, the authorization boundary, and the result-size strategy in no more than 1,024 Unicode characters.'

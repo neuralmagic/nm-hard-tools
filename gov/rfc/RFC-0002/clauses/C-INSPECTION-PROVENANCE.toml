@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INSPECTION-PROVENANCE"
+title = "Inspection evidence and explainability"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every semantic inspection and comparison result MUST identify the operation configuration digest, source artifact references and digests, result or view schema version, query parameters after defaults, and snapshot time. Derived, sampled, or approximate values MUST identify the derivation method and source fields. A service-generated summary MUST be deterministic from the returned evidence and MUST distinguish observed values from derived values. The service MUST NOT present an unsupported causal explanation as artifact evidence."

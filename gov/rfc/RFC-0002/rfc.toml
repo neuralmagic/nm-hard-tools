@@ -1,0 +1,57 @@
+#:schema ../../schema/rfc.schema.json
+
+[govctl]
+id = "RFC-0002"
+title = "Agent-Ergonomic MCP Service Contract"
+version = "0.1.0"
+status = "draft"
+phase = "spec"
+owners = ["@Tyler Michael Smith"]
+created = "2026-09-01"
+
+[[sections]]
+title = "Summary"
+clauses = [
+    "clauses/C-PURPOSE.toml",
+    "clauses/C-SCOPE.toml",
+]
+
+[[sections]]
+title = "Specification"
+clauses = [
+    "clauses/C-SERVICE-BOUNDARIES.toml",
+    "clauses/C-PROTOCOL-DISCOVERY.toml",
+    "clauses/C-TOOL-FAMILIES.toml",
+    "clauses/C-CAPABILITY-CATALOG.toml",
+    "clauses/C-TOOL-METADATA.toml",
+    "clauses/C-INPUT-SCHEMAS.toml",
+    "clauses/C-PLAN.toml",
+    "clauses/C-SUBMIT.toml",
+    "clauses/C-OPERATION-STATUS.toml",
+    "clauses/C-LIST.toml",
+    "clauses/C-CANCELLATION.toml",
+    "clauses/C-RESULT-REPRESENTATION.toml",
+    "clauses/C-BOUNDED-RESULTS.toml",
+    "clauses/C-ARTIFACTS.toml",
+    "clauses/C-ERRORS.toml",
+    "clauses/C-AUTHORIZATION.toml",
+    "clauses/C-COMPATIBILITY.toml",
+    "clauses/C-CONFORMANCE.toml",
+]
+
+[[sections]]
+title = "Result Inspection"
+clauses = [
+    "clauses/C-INSPECTION-MODEL.toml",
+    "clauses/C-INSPECTION-DISCOVERY.toml",
+    "clauses/C-SEMANTIC-INSPECTION.toml",
+    "clauses/C-INSPECTION-PAGINATION.toml",
+    "clauses/C-ARTIFACT-QUERY.toml",
+    "clauses/C-RESULT-COMPARISON.toml",
+    "clauses/C-INSPECTION-PROVENANCE.toml",
+]
+
+[[changelog]]
+version = "0.1.0"
+date = "2026-09-01"
+notes = "Initial draft"

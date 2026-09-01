@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-PURPOSE"
+title = "Purpose and caller model"
+kind = "informative"
+status = "active"
+
+[content]
+text = "This RFC defines the public contract for MCP services in nm-hard-tools. The primary caller is an autonomous agent that must discover operator-approved capabilities, make safe choices with limited context, resume asynchronous work, and interpret results without repository knowledge. The contract favors a small predictable tool vocabulary, structured data, explicit side effects, and useful recovery information."

@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SERVICE-BOUNDARIES"
+title = "Bounded domain services"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Each MCP server MUST represent one coherent operator-owned domain and MUST identify that domain in its advertised server name and instructions. A server MUST expose only capabilities that share an authorization and operational boundary. The evaluation and forward-benchmark domains MAY remain separate servers, but both MUST implement the common lifecycle and representation rules in this RFC. A server MUST NOT expose an internal REST operation solely because that operation exists."

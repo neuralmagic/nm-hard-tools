@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-OPERATION-STATUS"
+title = "Self-contained asynchronous status"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every submit, get, and cancel result MUST include a stable domain operation identifier, `state`, `terminal`, `created_at`, `updated_at`, a concise `summary`, and `available_actions`. The common `state` values MUST be `queued`, `running`, `cancelling`, `succeeded`, `failed`, and `cancelled`; domain-specific detail MUST use a separate `state_detail` field. `terminal` MUST be true exactly when `state` is `succeeded`, `failed`, or `cancelled`. `queued` MAY transition to any other state, `running` MAY transition to `cancelling`, `succeeded`, `failed`, or `cancelled`, and `cancelling` MAY transition to `cancelled` or `failed`; terminal states MUST NOT transition. A nonterminal result MUST include `poll_after_ms` or an explicit event subscription reference. A terminal result MUST identify report and artifact availability. Each `available_actions` entry MUST contain `tool_name` and complete safe `arguments` using only values already known to the server; an empty array MUST be returned when no action is available."
