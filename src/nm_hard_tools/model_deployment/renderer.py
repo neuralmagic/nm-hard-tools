@@ -18,6 +18,8 @@ from nm_hard_tools.model_deployment.models import ResourceRef
 
 OWNER_ANNOTATION = "nm-hard-tools.neuralmagic.com/deployment-id"
 DIGEST_ANNOTATION = "nm-hard-tools.neuralmagic.com/desired-state-digest"
+KUEUE_QUEUE_LABEL = "kueue.x-k8s.io/queue-name"
+KUEUE_LWS_NAME_MAX = 63 - len("leaderworkerset--0-00000")
 MAX_YAML_NODES = 10_000
 IMMUTABLE_GIT_REVISION = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
 ALLOWED_RESOURCE_KINDS = {
@@ -235,6 +237,7 @@ class ManifestoRenderer:
                     f"rendered resource kind is not allowed: {obj.get('kind')}"
                 )
             metadata = obj.setdefault("metadata", {})
+            _validate_queue_managed_lws_name(obj)
             if (
                 metadata.get("namespace", self.settings.namespace)
                 != self.settings.namespace
@@ -305,11 +308,15 @@ class ManifestoRenderer:
                 "operator routing policy currently supports aggregated topology only"
             )
         spec.routing.kind = RoutingKind.DISABLED
+        # The deterministic deployment identity already scopes every generated name.
+        # Omitting the redundant user prefix also leaves enough room for Kueue's
+        # LeaderWorkerSet Workload name to fit when copied into a label value.
+        cluster.naming.user_prefix = False
         objects = render(spec, user="nm-hard-tools", cluster=cluster)
         instance = Instance(
             user="nm-hard-tools",
             release=spec.release,
-            include_user_in_name=cluster.naming.user_prefix,
+            include_user_in_name=False,
         )
         if spec.routing.kind == RoutingKind.DISABLED:
             role = next(
@@ -393,6 +400,19 @@ def _intent_digest(parsed: dict[str, Any]) -> str:
     return hashlib.sha256(
         b"nm-hard-tools-manifesto-intent-v1\0" + canonical
     ).hexdigest()
+
+
+def _validate_queue_managed_lws_name(obj: dict[str, Any]) -> None:
+    if obj.get("kind") != "LeaderWorkerSet":
+        return
+    metadata = obj.get("metadata", {})
+    if KUEUE_QUEUE_LABEL not in metadata.get("labels", {}):
+        return
+    name = str(metadata.get("name", ""))
+    if len(name.encode("utf-8")) > KUEUE_LWS_NAME_MAX:
+        raise ManifestoConfigError(
+            "queue-managed LeaderWorkerSet name exceeds the Kueue label-safe limit"
+        )
 
 
 def _annotate_pod_templates(

@@ -7,9 +7,11 @@ import pytest
 from nm_hard_tools.model_deployment.config import DeploymentSettings
 from nm_hard_tools.model_deployment.renderer import (
     DIGEST_ANNOTATION,
+    KUEUE_LWS_NAME_MAX,
     OWNER_ANNOTATION,
     ManifestoConfigError,
     ManifestoRenderer,
+    _validate_queue_managed_lws_name,
     parse_manifesto_config,
 )
 
@@ -112,8 +114,25 @@ def test_pinned_manifesto_renders_explicit_single_node_lws(tmp_path: Path) -> No
 
     workload = next(obj for obj in rendered.objects if obj["kind"] == "LeaderWorkerSet")
     assert workload["spec"]["leaderWorkerTemplate"]["size"] == 1
+    assert len(workload["metadata"]["name"].encode()) <= KUEUE_LWS_NAME_MAX
+    assert "nm-hard-tools-" not in workload["metadata"]["name"]
+    kueue_workload_label = f"leaderworkerset-{workload['metadata']['name']}-0-00000"
+    assert len(kueue_workload_label.encode()) <= 63
     assert rendered.workloads[0].expected_pods == 1
     assert any(resource.kind == "LeaderWorkerSet" for resource in rendered.resources)
+
+
+def test_queue_managed_lws_rejects_name_that_cannot_fit_kueue_label() -> None:
+    with pytest.raises(ManifestoConfigError, match="Kueue label-safe limit"):
+        _validate_queue_managed_lws_name(
+            {
+                "kind": "LeaderWorkerSet",
+                "metadata": {
+                    "name": "x" * (KUEUE_LWS_NAME_MAX + 1),
+                    "labels": {"kueue.x-k8s.io/queue-name": "models"},
+                },
+            }
+        )
 
 
 def test_release_placeholder_does_not_select_deployment_identity(
