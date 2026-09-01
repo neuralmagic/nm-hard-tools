@@ -1,0 +1,32 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-006"
+title = "Isolate model deployment Service selectors per release"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Scope the model-deployment chart Service and Deployment label selectors to a single Helm release so co-located releases in one namespace cannot front each other's controllers and serve a caller with a different operator-controlled render context."
+notes = [
+    "Observed live in namespace tms: two releases selected on app.kubernetes.io/name alone, the a100 Service listed both controller endpoints, and a deploy_model call addressed to it rendered with the other release's B200 cluster profile.",
+    "The Deployment spec.selector.matchLabels is immutable, so an existing release must be reinstalled rather than upgraded in place.",
+]
+
+[[content.acceptance_criteria]]
+text = "Service selectors and Deployment pod-template labels are generated from one selectorLabels helper that includes app.kubernetes.io/instance."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Two releases of the chart rendered in one namespace produce disjoint Service selectors."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Chart tests and repository governance checks pass."
+status = "done"
+category = "chore"

@@ -6,6 +6,11 @@
 {{- printf "%s-%s" .Release.Name (include "model-deployment.name" .) | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "model-deployment.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "model-deployment.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
 {{- define "model-deployment.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create -}}
 {{- default (include "model-deployment.fullname" .) .Values.serviceAccount.name -}}
