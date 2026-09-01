@@ -3,13 +3,13 @@
 [govctl]
 id = "RFC-0001"
 title = "Single-tool model deployment service"
-version = "0.2.1"
+version = "0.2.2"
 status = "normative"
 phase = "test"
 owners = ["@Tyler Michael Smith"]
 created = "2026-09-01"
 updated = "2026-09-01"
-signature = "2eeadec6ffe73b03c524bd82b9c388a131cd603cc2e229929fddfb2d6fae9df6"
+signature = "db36bfc8507e49f9a4a299852fbe690f7fef205a7caefdbc58e064fcc7cafb21"
 
 [[sections]]
 title = "Summary"
@@ -27,6 +27,13 @@ clauses = [
 [[sections]]
 title = "Overview"
 clauses = ["clauses/C-PURPOSE.toml"]
+
+[[changelog]]
+version = "0.2.2"
+date = "2026-09-01"
+notes = "Align MCP safety and recovery metadata"
+changed = ["Add common bounded error recovery fields"]
+fixed = ["Mark deployment as closed-world and document bearer authorization"]
 
 [[changelog]]
 version = "0.2.1"

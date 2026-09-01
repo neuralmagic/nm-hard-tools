@@ -63,9 +63,11 @@ class DeploymentService:
                     exc.code, exc.message, exc.retryable, deployment_id
                 ) from exc
         return DeployModelResult(
+            schema_version="1",
             manifesto_digest=rendered.manifesto_digest,
             deployment_id=rendered.deployment_id,
             endpoint=rendered.endpoint,
+            ready=True,
             target_namespace=rendered.namespace,
             resources=rendered.resources,
         )

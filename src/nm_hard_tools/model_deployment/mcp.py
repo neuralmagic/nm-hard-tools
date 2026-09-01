@@ -10,6 +10,7 @@ from nm_hard_tools.mcp import McpTool, McpToolResult
 from nm_hard_tools.model_deployment.models import (
     DeployModelError,
     DeployModelInput,
+    FieldIssue,
     output_schema,
 )
 from nm_hard_tools.model_deployment.service import DeployFailure, DeploymentService
@@ -21,9 +22,21 @@ def deployment_tools(service: DeploymentService) -> list[McpTool]:
             request = DeployModelInput.model_validate(arguments)
         except ValidationError:
             error = DeployModelError(
+                schema_version="1",
                 code="INVALID_MANIFESTO_CONFIG",
                 message="manifesto_config must be the only input and fit within 1 MiB",
                 retryable=False,
+                retry_after_ms=None,
+                field_issues=[
+                    FieldIssue(
+                        field="manifesto_config",
+                        code="INVALID_ARGUMENT",
+                        message="Provide only one Manifesto YAML string up to 1 MiB",
+                    )
+                ],
+                current_state=None,
+                suggested_action=None,
+                deployment_id=None,
             )
             return McpToolResult(
                 text=error.message,
@@ -33,10 +46,24 @@ def deployment_tools(service: DeploymentService) -> list[McpTool]:
         try:
             result = await asyncio.to_thread(service.deploy, request.manifesto_config)
         except DeployFailure as exc:
+            field_issues = []
+            if exc.code == "INVALID_MANIFESTO_CONFIG":
+                field_issues = [
+                    FieldIssue(
+                        field="manifesto_config",
+                        code="INVALID_ARGUMENT",
+                        message=str(exc),
+                    )
+                ]
             error = DeployModelError(
+                schema_version="1",
                 code=exc.code,
                 message=str(exc),
                 retryable=exc.retryable,
+                retry_after_ms=1_000 if exc.retryable else None,
+                field_issues=field_issues,
+                current_state=None,
+                suggested_action=None,
                 deployment_id=exc.deployment_id,
             )
             return McpToolResult(
@@ -65,7 +92,7 @@ def deployment_tools(service: DeploymentService) -> list[McpTool]:
                 "readOnlyHint": False,
                 "destructiveHint": False,
                 "idempotentHint": True,
-                "openWorldHint": True,
+                "openWorldHint": False,
             },
             handler=deploy,
         )

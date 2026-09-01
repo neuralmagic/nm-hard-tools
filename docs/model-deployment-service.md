@@ -71,3 +71,10 @@ A successful result contains the exact input digest, stable deployment ID,
 target namespace, bounded resource references, and the exact in-cluster
 `/v1/models` endpoint that passed the readiness probe. It never returns
 the submitted configuration, rendered manifest, logs, or credentials.
+
+Domain failures use a closed bounded recovery object containing `code`,
+`message`, `retryable`, `retry_after_ms`, `field_issues`, `current_state`, and
+`suggested_action`. The deployment-specific `deployment_id` remains available
+after target acceptance so an agent can safely retry the same intent. The tool
+advertises `openWorldHint: false` because caller input cannot select a network
+destination outside the operator-defined target environment.

@@ -133,10 +133,12 @@ def create_app(
         name="manifesto-model-deployment",
         version=SERVICE_VERSION,
         instructions=(
-            "Call deploy_model with one complete Manifesto model YAML document. "
-            "The operator fixes cluster, namespace, credentials, renderer, and policy. "
-            "A successful result identifies the ready in-cluster inference endpoint; "
-            "rendered manifests and logs are intentionally omitted."
+            "Operator-issued bearer authorization is required and verified before "
+            "tool arguments are parsed. Call deploy_model once with one complete "
+            "Manifesto YAML document; success returns a ready endpoint. The operator "
+            "fixes cluster, namespace, credentials, renderer, and policy. Results are "
+            "bounded to status and resource references; configuration, manifests, "
+            "and logs are omitted."
         ),
         tools=deployment_tools(service),
         allowed_origins=set(settings.allowed_origins),

@@ -33,11 +33,11 @@ class ResourceRef(StrictModel):
 
 
 class DeployModelResult(StrictModel):
-    schema_version: Literal["1"] = "1"
+    schema_version: Literal["1"]
     manifesto_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
     deployment_id: str = Field(min_length=1, max_length=253)
     endpoint: str = Field(min_length=1, max_length=2048)
-    ready: Literal[True] = True
+    ready: Literal[True]
     target_namespace: str = Field(min_length=1, max_length=63)
     resources: list[ResourceRef] = Field(max_length=64)
 
@@ -52,12 +52,27 @@ ErrorCode = Literal[
 ]
 
 
+class FieldIssue(StrictModel):
+    field: str = Field(min_length=1, max_length=1024)
+    code: str = Field(min_length=1, max_length=1024)
+    message: str = Field(min_length=1, max_length=1024)
+
+
+class SuggestedAction(StrictModel):
+    tool_name: Literal["deploy_model"]
+    arguments: DeployModelInput
+
+
 class DeployModelError(StrictModel):
-    schema_version: Literal["1"] = "1"
+    schema_version: Literal["1"]
     code: ErrorCode
     message: str = Field(min_length=1, max_length=1024)
     retryable: bool
-    deployment_id: str | None = Field(default=None, min_length=1, max_length=253)
+    retry_after_ms: int | None = Field(ge=0, le=7_200_000)
+    field_issues: list[FieldIssue] = Field(max_length=32)
+    current_state: str | None = Field(min_length=1, max_length=253)
+    suggested_action: SuggestedAction | None
+    deployment_id: str | None = Field(min_length=1, max_length=253)
 
 
 def output_schema() -> dict:

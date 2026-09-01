@@ -1,0 +1,28 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-002"
+title = "Align model deployment MCP recovery metadata"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Align the model deployment MCP surface with reusable agent-facing safety and recovery conventions while preserving the synchronous deployment contract and post-acceptance identity needed for safe retries."
+
+[[content.acceptance_criteria]]
+text = "Domain failures expose the [[RFC-0001]] common bounded recovery fields while retaining deployment_id for post-acceptance recovery."
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "deploy_model advertises closed-world behavior and server instructions explicitly describe bearer authorization, preferred workflow, operator control, and bounded results."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Automated MCP tests validate the amended annotations, instructions, success schema, and error schema and payloads."
+status = "done"
+category = "chore"

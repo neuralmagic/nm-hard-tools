@@ -12,6 +12,7 @@ from nm_hard_tools.model_deployment.renderer import (
     RenderedDeployment,
     WorkloadExpectation,
 )
+from nm_hard_tools.model_deployment.runtime import DeploymentRuntime, RuntimeFailure
 
 
 class Renderer:
@@ -47,7 +48,14 @@ class Runtime:
         return None
 
 
-def client(tmp_path: Path) -> TestClient:
+class FailingRuntime:
+    def deploy(self, _rendered: RenderedDeployment, _timeout: int) -> None:
+        raise RuntimeFailure(
+            "DEPENDENCY_UNAVAILABLE", "Kubernetes is unavailable", True, True
+        )
+
+
+def client(tmp_path: Path, runtime: DeploymentRuntime | None = None) -> TestClient:
     cluster = tmp_path / "cluster.yaml"
     cluster.write_text("name: test\n")
     token = tmp_path / "token"
@@ -59,7 +67,12 @@ def client(tmp_path: Path) -> TestClient:
         readiness_timeout_seconds=30,
     )
     return TestClient(
-        create_app(settings, Runtime(), renderer=Renderer(), bearer_token="secret")
+        create_app(
+            settings,
+            runtime or Runtime(),
+            renderer=Renderer(),
+            bearer_token="secret",
+        )
     )
 
 
@@ -108,10 +121,72 @@ def test_server_advertises_only_the_closed_manifesto_tool(tmp_path: Path) -> Non
         "readOnlyHint": False,
         "destructiveHint": False,
         "idempotentHint": True,
-        "openWorldHint": True,
+        "openWorldHint": False,
     }
     assert "oneOf" in tool["outputSchema"]
     assert "ResourceRef" in tool["outputSchema"]["$defs"]
+    success_schema = tool["outputSchema"]["$defs"]["DeployModelResult"]
+    error_schema = tool["outputSchema"]["$defs"]["DeployModelError"]
+    assert set(success_schema["required"]) == set(success_schema["properties"])
+    assert set(error_schema["required"]) == set(error_schema["properties"])
+
+
+def test_discovery_describes_authorization_workflow_and_bounded_results(
+    tmp_path: Path,
+) -> None:
+    discovered = request(client(tmp_path), "server/discover").json()["result"]
+    instructions = discovered["instructions"].lower()
+    assert "bearer authorization is required and verified" in instructions
+    assert "before tool arguments are parsed" in instructions
+    assert "deploy_model" in instructions
+    assert "operator fixes" in instructions
+    assert "bounded" in instructions
+    assert "manifests" in instructions
+
+
+def test_domain_errors_match_the_common_bounded_recovery_shape(tmp_path: Path) -> None:
+    response = request(
+        client(tmp_path),
+        "tools/call",
+        {"name": "deploy_model", "arguments": {"manifesto_config": ""}},
+    )
+    result = response.json()["result"]
+    assert result["isError"] is True
+    assert result["structuredContent"] == {
+        "schema_version": "1",
+        "code": "INVALID_MANIFESTO_CONFIG",
+        "message": "manifesto_config must be the only input and fit within 1 MiB",
+        "retryable": False,
+        "retry_after_ms": None,
+        "field_issues": [
+            {
+                "field": "manifesto_config",
+                "code": "INVALID_ARGUMENT",
+                "message": "Provide only one Manifesto YAML string up to 1 MiB",
+            }
+        ],
+        "current_state": None,
+        "suggested_action": None,
+        "deployment_id": None,
+    }
+
+
+def test_retryable_post_acceptance_error_keeps_recovery_identity(
+    tmp_path: Path,
+) -> None:
+    response = request(
+        client(tmp_path, FailingRuntime()),
+        "tools/call",
+        {"name": "deploy_model", "arguments": {"manifesto_config": "release: qwen"}},
+    )
+    error = response.json()["result"]["structuredContent"]
+    assert error["code"] == "DEPENDENCY_UNAVAILABLE"
+    assert error["retryable"] is True
+    assert error["retry_after_ms"] == 1_000
+    assert error["field_issues"] == []
+    assert error["current_state"] is None
+    assert error["suggested_action"] is None
+    assert error["deployment_id"] == "hard-" + "b" * 24
 
 
 def test_deploy_model_returns_the_probed_endpoint_shape(tmp_path: Path) -> None:
