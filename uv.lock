@@ -931,6 +931,15 @@ wheels = [
 ]
 
 [[package]]
+name = "llm-manifesto"
+version = "0.3.0"
+source = { git = "https://github.com/neuralmagic/llm-manifesto.git?rev=ebb7932c63967d622cf8f7e8a8e7781c5214a779#ebb7932c63967d622cf8f7e8a8e7781c5214a779" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pyyaml" },
+]
+
+[[package]]
 name = "lm-eval"
 version = "0.4.13.dev0"
 source = { git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b#8a07e1110d060de48cfc7a9a7987b7659060b60b" }
@@ -1367,6 +1376,9 @@ dependencies = [
 lm-eval-service = [
     { name = "lm-eval", extra = ["api"] },
 ]
+model-deployment = [
+    { name = "llm-manifesto" },
+]
 test = [
     { name = "pytest" },
     { name = "ruff" },
@@ -1377,6 +1389,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.116,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "kubernetes", specifier = ">=33,<35" },
+    { name = "llm-manifesto", marker = "extra == 'model-deployment'", git = "https://github.com/neuralmagic/llm-manifesto.git?rev=ebb7932c63967d622cf8f7e8a8e7781c5214a779" },
     { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
     { name = "pydantic-settings", specifier = ">=2.10,<3" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },
@@ -1384,7 +1397,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'test'", specifier = ">=0.12,<1" },
     { name = "uvicorn", specifier = ">=0.35,<1" },
 ]
-provides-extras = ["lm-eval-service", "test"]
+provides-extras = ["lm-eval-service", "test", "model-deployment"]
 
 [[package]]
 name = "numpy"

@@ -1,0 +1,49 @@
+#:schema ../../schema/rfc.schema.json
+
+[govctl]
+id = "RFC-0001"
+title = "Single-tool model deployment service"
+version = "0.2.1"
+status = "normative"
+phase = "test"
+owners = ["@Tyler Michael Smith"]
+created = "2026-09-01"
+updated = "2026-09-01"
+signature = "2eeadec6ffe73b03c524bd82b9c388a131cd603cc2e229929fddfb2d6fae9df6"
+
+[[sections]]
+title = "Summary"
+
+[[sections]]
+title = "Specification"
+clauses = [
+    "clauses/C-TOOL-SURFACE.toml",
+    "clauses/C-OPERATOR-CATALOG.toml",
+    "clauses/C-DEPLOYMENT.toml",
+    "clauses/C-RESULT.toml",
+    "clauses/C-ERRORS.toml",
+]
+
+[[sections]]
+title = "Overview"
+clauses = ["clauses/C-PURPOSE.toml"]
+
+[[changelog]]
+version = "0.2.1"
+date = "2026-09-01"
+notes = "Clarify Manifesto release handling"
+fixed = [
+    "Permit the renderer-required release field only as an ignored schema placeholder",
+    "Derive deployment identity from canonical model intent with release removed",
+]
+
+[[changelog]]
+version = "0.2.0"
+date = "2026-09-01"
+notes = "Accept caller-supplied Manifesto model configuration"
+changed = ["Replace catalog model identifiers with bounded Manifesto YAML input"]
+
+[[changelog]]
+version = "0.1.0"
+date = "2026-09-01"
+notes = "Initial draft"

@@ -1,0 +1,26 @@
+{{- if not (regexMatch "^sha256:[a-f0-9]{64}$" .Values.image.digest) -}}
+{{- fail "image.digest must be sha256 digest pinned" -}}
+{{- end -}}
+{{- if not .Values.auth.existingSecret -}}
+{{- fail "auth.existingSecret is required" -}}
+{{- end -}}
+{{- if not .Values.target.clusterProfile -}}
+{{- fail "target.clusterProfile is required" -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "model-deployment.fullname" . }}
+data:
+  settings.yaml: |
+    cluster_profile: /etc/nm-hard-tools/cluster-profile.yaml
+    namespace: {{ .Values.target.namespace | quote }}
+    {{- if .Values.target.kubeContext }}
+    kube_context: {{ .Values.target.kubeContext | quote }}
+    {{- end }}
+    bearer_token_file: /var/run/secrets/nm-hard-tools/token
+    readiness_timeout_seconds: {{ .Values.target.readinessTimeoutSeconds }}
+    allowed_origins:
+      {{- toYaml .Values.allowedOrigins | nindent 6 }}
+  cluster-profile.yaml: |
+{{ .Values.target.clusterProfile | nindent 4 }}

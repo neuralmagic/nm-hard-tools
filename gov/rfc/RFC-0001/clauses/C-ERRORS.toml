@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-ERRORS"
+title = "Failure behavior"
+kind = "normative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "Authentication or authorization denial MUST use a protocol-level error before tool invocation and MUST NOT parse, include, or diagnose `manifesto_config`. A recognized `deploy_model` domain failure MUST return an MCP tool result with `isError: true` and `structuredContent` matching a closed JSON object with required properties `schema_version`, the string constant `1`; `code`, one of `INVALID_MANIFESTO_CONFIG`, `INVALID_OPERATOR_CONFIGURATION`, `TARGET_VALIDATION_FAILED`, `APPLY_FAILED`, `READINESS_TIMEOUT`, or `DEPENDENCY_UNAVAILABLE`; `message`, a string from 1 through 1,024 Unicode characters; `retryable`, a boolean; and `deployment_id`, either null or a non-empty string no longer than 253 characters. `INVALID_MANIFESTO_CONFIG`, `INVALID_OPERATOR_CONFIGURATION`, and `TARGET_VALIDATION_FAILED` MUST set `retryable` to false and `deployment_id` to null. `READINESS_TIMEOUT` MUST set `retryable` to true. `DEPENDENCY_UNAVAILABLE` MUST set `retryable` to true and MUST set `deployment_id` to null before target acceptance during the current call or to the derived deployment identifier after target acceptance during the current call. `APPLY_FAILED` MUST set `retryable` according to whether repeating the same rendered deployment can make progress. Every failure after target acceptance during the current call, including `APPLY_FAILED` and `READINESS_TIMEOUT`, MUST include `deployment_id`. Malformed MCP requests and unknown tools MUST use protocol-level errors instead. Error content MUST NOT expose the submitted Manifesto configuration, credentials, internal stack traces, or unbounded dependency output."

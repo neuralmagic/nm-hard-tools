@@ -28,7 +28,7 @@ jobs:
       - uses: azure/setup-helm@v5.0.1
       - run: uv run --extra test ruff format --check src tests
       - run: uv run --extra test ruff check src tests
-      - run: uv run --extra test --extra lm-eval-service pytest
+      - run: uv run --extra test --extra lm-eval-service --extra model-deployment pytest
       - name: Render charts
         run: |
           helm template forward-pass charts/forward-pass-benchmark \
@@ -51,3 +51,9 @@ jobs:
             --set runnerImage=example/runner@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
             --set auth.existingSecret=agentx-token \
             --set storage.resultsClaim=results
+          helm template model-deployment charts/model-deployment \
+            --set image.repository=example/model-deployment \
+            --set image.digest=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            --set auth.existingSecret=model-deployment-token \
+            --set target.namespace=model-serving \
+            --set-string 'target.clusterProfile=name: ci'

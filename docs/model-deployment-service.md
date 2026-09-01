@@ -1,0 +1,73 @@
+# Model deployment service
+
+This service exposes one authenticated MCP tool, `deploy_model`, whose only
+argument is a complete llm-manifesto model configuration encoded as YAML. It
+renders that intent with an operator-pinned Manifesto revision and an
+operator-owned cluster profile, creates only new owned Kubernetes resources,
+waits for every model pod, and probes the exact inference endpoint returned to
+the caller.
+
+The caller cannot select the Kubernetes context, namespace, cluster profile,
+credentials, deployment identity, storage roots, routing profile, or submission
+policy. YAML aliases, duplicate keys, custom tags, multiple documents,
+inheritance, and operator-control fields are rejected before rendering. The
+input is limited to 1 MiB and 10,000 parsed nodes.
+
+The initial operator routing policy accepts aggregated topology and renders a
+direct vLLM service. Disaggregated and routed topologies are rejected before
+cluster mutation until their required RBAC and endpoint policy are defined.
+
+## Build and deploy
+
+Build the image for an explicit platform so `TARGETARCH` selects the matching
+`kubectl` binary:
+
+```bash
+docker buildx build --platform linux/amd64 \
+  -f Dockerfile.model-deployment \
+  --build-arg BASE_IMAGE=python:3.12-slim@sha256:<base-digest> \
+  -t registry.example/nm-hard-model-deployment:<build-id> .
+```
+
+Create the bearer-token Secret, then install the chart with an immutable image
+and a complete private Manifesto cluster profile:
+
+```bash
+kubectl -n hard-tools create secret generic model-deployment-token \
+  --from-literal=token='<random-token>'
+
+helm upgrade --install model-deployment charts/model-deployment \
+  --namespace hard-tools --create-namespace \
+  --set image.repository=registry.example/nm-hard-model-deployment \
+  --set image.digest=sha256:<image-digest> \
+  --set auth.existingSecret=model-deployment-token \
+  --set target.namespace=model-serving \
+  --set-file target.clusterProfile=/secure/path/cluster-profile.yaml
+```
+
+The chart creates a Role in `target.namespace` and binds it to the controller
+ServiceAccount. Set `rbac.create=false` and provide equivalent operator-owned
+permissions when the generated resource allowlist is unsuitable.
+
+## MCP call
+
+`POST /mcp` requires `Authorization: Bearer <token>` before the request body is
+parsed. The tool input is a closed object:
+
+```json
+{
+  "manifesto_config": "topology: aggregated\nmodel:\n  id: org/model\n  image_ref: vllm.standard\nruntime: {sidecars: []}\nroles:\n  - name: decode\n    lws: {size: 1}\n    parallelism: {tp: 1, dp: false, ep: false}\n    resources: {cpu: '8', memory: 32Gi, gpus: 1}\n"
+}
+```
+
+The upstream renderer normally requires `release`. The service accepts it as an
+optional compatibility placeholder, removes it from deployment identity input,
+and injects the derived identity before rendering. Configurations with the same
+parsed model intent and operator render context therefore converge even when
+their submitted `release` values or YAML formatting differ. A semantic model
+intent change receives a new identity and cannot overwrite the prior deployment.
+
+A successful result contains the exact input digest, stable deployment ID,
+target namespace, bounded resource references, and the exact in-cluster
+`/v1/models` endpoint that passed the readiness probe. It never returns
+the submitted configuration, rendered manifest, logs, or credentials.

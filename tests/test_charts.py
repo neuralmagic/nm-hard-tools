@@ -116,3 +116,24 @@ def test_charts_support_operator_owned_rbac(
 ) -> None:
     documents = render(chart, *values, "--set=rbac.create=false")
     assert not any(item["kind"] in {"Role", "RoleBinding"} for item in documents)
+
+
+def test_model_deployment_chart_pins_image_and_keeps_target_operator_owned() -> None:
+    documents = render(
+        "model-deployment",
+        "--set=image.repository=example/model-deployment",
+        "--set=image.digest=sha256:" + "a" * 64,
+        "--set=auth.existingSecret=model-deployment-token",
+        "--set=target.namespace=models",
+        "--set-string=target.clusterProfile=name: test",
+    )
+    deployment = next(item for item in documents if item["kind"] == "Deployment")
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert container["image"] == "example/model-deployment@sha256:" + "a" * 64
+    role = next(item for item in documents if item["kind"] == "Role")
+    assert role["metadata"]["namespace"] == "models"
+    settings = next(item for item in documents if item["kind"] == "ConfigMap")["data"][
+        "settings.yaml"
+    ]
+    assert 'namespace: "models"' in settings
+    assert "cluster_profile: /etc/nm-hard-tools/cluster-profile.yaml" in settings

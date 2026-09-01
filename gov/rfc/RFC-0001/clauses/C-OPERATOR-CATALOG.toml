@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-OPERATOR-CATALOG"
+title = "Operator-controlled render context"
+kind = "normative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "The service MUST authenticate and authorize the caller before parsing `manifesto_config`; authentication or authorization denial MUST be a protocol-level error and MUST prevent tool invocation. YAML parsing MUST accept exactly one document, MUST reject duplicate mapping keys, aliases, non-standard or custom tags, and a parsed representation exceeding 10,000 scalar, sequence, and mapping nodes in total, and MUST use only the schema implemented by the operator-pinned renderer. Before rendering, the service MUST reject every parsed field that the renderer recognizes as selecting or referencing a namespace, Kubernetes context or cluster profile, credential or Secret, deployment user or identity, cache or log root, routing profile, or submission policy. As the sole exception, the renderer-required top-level Manifesto `release` field MAY be absent or present for schema compatibility; the service MUST ignore any submitted value, remove it from deployment identity input, and set `release` to the derived `deployment_id` before rendering. All parser, bound, forbidden-field, unknown-field, unresolved-inheritance, and render-context rejections MUST return `INVALID_MANIFESTO_CONFIG` before cluster mutation. The service MUST render accepted model intent with an operator-controlled immutable renderer version, cluster profile, Kubernetes context, namespace, deployment identity policy, credentials, routing policy, storage roots, and submission policy."
