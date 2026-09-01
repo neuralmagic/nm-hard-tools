@@ -933,7 +933,7 @@ wheels = [
 [[package]]
 name = "llm-manifesto"
 version = "0.3.0"
-source = { git = "https://github.com/neuralmagic/llm-manifesto.git?rev=1ba2eb87fe9bb2920d375522f424f758d949ee55#1ba2eb87fe9bb2920d375522f424f758d949ee55" }
+source = { git = "https://github.com/neuralmagic/llm-manifesto.git?rev=229195038e506b67bc064bde9f36b6ca13ef5170#229195038e506b67bc064bde9f36b6ca13ef5170" }
 dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -1389,7 +1389,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.116,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "kubernetes", specifier = ">=33,<35" },
-    { name = "llm-manifesto", marker = "extra == 'model-deployment'", git = "https://github.com/neuralmagic/llm-manifesto.git?rev=1ba2eb87fe9bb2920d375522f424f758d949ee55" },
+    { name = "llm-manifesto", marker = "extra == 'model-deployment'", git = "https://github.com/neuralmagic/llm-manifesto.git?rev=229195038e506b67bc064bde9f36b6ca13ef5170" },
     { name = "lm-eval", extras = ["api"], marker = "extra == 'lm-eval-service'", git = "https://github.com/EleutherAI/lm-evaluation-harness.git?rev=8a07e1110d060de48cfc7a9a7987b7659060b60b" },
     { name = "pydantic-settings", specifier = ">=2.10,<3" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8,<10" },

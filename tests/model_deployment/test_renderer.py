@@ -89,6 +89,33 @@ def test_pinned_manifesto_renders_one_owned_direct_endpoint(tmp_path: Path) -> N
     assert any(resource.kind == "Deployment" for resource in rendered.resources)
 
 
+def test_pinned_manifesto_renders_explicit_single_node_lws(tmp_path: Path) -> None:
+    pytest.importorskip("manifesto")
+    token = tmp_path / "token"
+    token.write_text("secret")
+    settings = DeploymentSettings(
+        cluster_profile=(FIXTURES / "cluster.yaml").resolve(),
+        namespace="models",
+        bearer_token_file=token.resolve(),
+        readiness_timeout_seconds=30,
+    )
+    source = (FIXTURES / "model.yaml").read_text().replace(
+        "  - name: decode\n",
+        "  - name: decode\n    workload: leaderworkerset\n",
+    )
+
+    rendered = ManifestoRenderer(settings).render(source)
+
+    workload = next(
+        obj for obj in rendered.objects if obj["kind"] == "LeaderWorkerSet"
+    )
+    assert workload["spec"]["leaderWorkerTemplate"]["size"] == 1
+    assert rendered.workloads[0].expected_pods == 1
+    assert any(
+        resource.kind == "LeaderWorkerSet" for resource in rendered.resources
+    )
+
+
 def test_release_placeholder_does_not_select_deployment_identity(
     tmp_path: Path,
 ) -> None:

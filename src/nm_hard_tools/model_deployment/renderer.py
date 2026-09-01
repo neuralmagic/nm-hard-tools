@@ -341,7 +341,9 @@ def _workload_expectation(obj: dict[str, Any]) -> WorkloadExpectation | None:
     metadata = obj.get("metadata", {})
     labels = metadata.get("labels", {})
     component = labels.get("app.kubernetes.io/component", "")
-    if component != "model-server":
+    if (kind == "Deployment" and component != "model-server") or (
+        kind == "LeaderWorkerSet" and component != "lws"
+    ):
         return None
     selector: dict[str, str]
     if kind == "Deployment":

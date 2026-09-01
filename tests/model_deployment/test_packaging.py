@@ -12,7 +12,7 @@ from nm_hard_tools.model_deployment.renderer import (
 )
 
 ROOT = Path(__file__).parents[2]
-REVISION = "1ba2eb87fe9bb2920d375522f424f758d949ee55"
+REVISION = "229195038e506b67bc064bde9f36b6ca13ef5170"
 
 
 def test_installed_manifesto_identity_uses_direct_url_commit() -> None:
