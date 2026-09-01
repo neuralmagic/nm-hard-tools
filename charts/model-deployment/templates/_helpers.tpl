@@ -7,8 +7,8 @@
 {{- end -}}
 
 {{- define "model-deployment.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "model-deployment.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/name: {{ include "model-deployment.name" . | quote }}
+app.kubernetes.io/instance: {{ .Release.Name | quote }}
 {{- end -}}
 
 {{- define "model-deployment.serviceAccountName" -}}

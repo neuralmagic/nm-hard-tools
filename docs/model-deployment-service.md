@@ -62,13 +62,26 @@ permissions when the generated resource allowlist is unsuitable.
 
 Workload labels are scoped by Helm release name, so several releases with
 different cluster profiles can share a namespace and each Service reaches only
-its own controller. `spec.selector` on a Deployment is immutable, so a release
-installed before this scoping was added must be replaced rather than upgraded:
+its own controller.
+
+A Deployment's `spec.selector` is immutable, so `helm upgrade` on a release
+installed before this scoping fails with `field is immutable`. Delete only the
+controller Deployment and upgrade with the same values; Helm recreates it with
+the release-scoped selector and leaves the Service and its ClusterIP, the
+ConfigMap, the ServiceAccount, the Role binding, and the release history in
+place:
 
 ```bash
-helm uninstall <release> --namespace hard-tools
-helm upgrade --install <release> charts/model-deployment ...
+kubectl delete deployment <release>-model-deployment --namespace hard-tools
+
+# Re-run the original install command above, unchanged.
+helm upgrade --install <release> charts/model-deployment --namespace hard-tools ...
 ```
+
+The controller is unreachable between the delete and the replacement pod
+passing its readiness probe. `helm uninstall` followed by a fresh install also
+works, but it drops the Service ClusterIP and forces every operator-controlled
+value, including the cluster profile, to be supplied again.
 
 ## MCP call
 
