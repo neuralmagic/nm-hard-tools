@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "model-deployment.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "model-deployment.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "model-deployment.name" . }}
+    spec:
+      serviceAccountName: {{ include "model-deployment.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: service
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MODEL_DEPLOY_SETTINGS
+              value: /etc/nm-hard-tools/settings.yaml
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nm-hard-tools
+              readOnly: true
+            - name: auth
+              mountPath: /var/run/secrets/nm-hard-tools
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "model-deployment.fullname" . }}
+        - name: auth
+          secret:
+            secretName: {{ .Values.auth.existingSecret }}
+            items:
+              - key: {{ .Values.auth.secretKey }}
+                path: token

@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-TOOL-SURFACE"
+title = "Single-tool surface"
+kind = "normative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "The model-deployment MCP server MUST advertise exactly one entry in MCP `tools/list`, named `deploy_model`. Its input schema MUST be a closed JSON object with required property `manifesto_config` and no other properties. `manifesto_config` MUST be a string whose UTF-8 encoding is from 1 through 1,048,576 bytes and MUST contain exactly one llm-manifesto model configuration YAML document. Tool annotations MUST set `readOnlyHint` to false, `destructiveHint` to false, `idempotentHint` to true, and `openWorldHint` to false because caller input cannot select a destination outside the operator-defined target environment. Server instructions MUST state that bearer authorization is required before tool arguments are parsed, that the preferred workflow is one `deploy_model` call returning a ready endpoint, that the caller controls model deployment intent through Manifesto configuration while the target environment remains operator-controlled, and that results are bounded to status and resource references without manifests or logs."

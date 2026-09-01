@@ -1,0 +1,36 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-003"
+title = "Harden Manifesto dependency pinning"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Update the model-deployment service to use the current immutable Manifesto revision with a frozen container dependency graph and derive renderer provenance from installed package metadata, preventing dependency drift and mismatched deployment identities."
+
+[[content.acceptance_criteria]]
+text = "The deployment service uses the selected current Manifesto commit and records its installed immutable provenance in render-context identity."
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "The model-deployment container installs its complete dependency graph from the checked-in frozen lockfile."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Manifesto revision provenance has one authoritative dependency source and fails closed when immutable VCS metadata is unavailable."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Automated tests cover installed provenance validation and the locked deployment build path."
+status = "done"
+category = "chore"
+
+[verification]
+required_guards = ["GUARD-GOVCTL-CHECK-PASSES"]

@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-DEPLOYMENT"
+title = "Idempotent ready deployment"
+kind = "normative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "`deploy_model` MUST compute `manifesto_digest` as lowercase SHA-256 over the exact UTF-8 byte sequence of `manifesto_config`. It MUST derive a stable `deployment_id` from an unambiguous versioned deterministic encoding of the accepted parsed model intent with the top-level `release` field removed, together with the operator-controlled render-context identity. Configurations whose accepted parsed forms differ only in `release` MUST derive the same `deployment_id`. Before rendering, the service MUST set `release` to that derived identity whether the field was absent or supplied. The service MUST render and fully validate the resulting Kubernetes resources against the target environment before creating resources. Rendering MUST produce exactly one externally reported inference endpoint, potentially backed by multiple role workloads, or fail as `INVALID_MANIFESTO_CONFIG` before mutation. Render or validation failure MUST leave cluster state unchanged. Sequential or concurrent calls with the same deployment intent and render context MUST converge on one owned resource set and MUST NOT create another logical deployment. The service MUST create or observe only resources bearing the service ownership identity and derived `deployment_id`; it MUST fail before changing a rendered resource that exists without matching ownership and desired-state identity, and it MUST NOT delete, adopt, replace, or change any existing resource. A successful call MUST mean that every rendered model workload reports ready and that a probe of the exact externally reported inference endpoint succeeds before an operator-configured finite timeout. Any failure after the current call causes the target to accept an owned resource MUST include `deployment_id`, MUST NOT trigger automatic rollback, MAY leave only that deployment owned resources in place, and a retry MUST reconcile the same rendered resource set."

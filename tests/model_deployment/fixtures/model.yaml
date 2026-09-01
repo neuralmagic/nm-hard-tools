@@ -1,0 +1,11 @@
+release: caller-name-is-replaced
+topology: aggregated
+model:
+  id: Qwen/Qwen3-0.6B
+  image_ref: vllm.standard
+runtime: {sidecars: []}
+roles:
+  - name: decode
+    lws: {size: 1}
+    parallelism: {tp: 1, dp: false, ep: false}
+    resources: {cpu: "8", memory: 32Gi, gpus: 1, ephemeral_storage: 32Gi}

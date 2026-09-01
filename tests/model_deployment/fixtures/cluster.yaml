@@ -1,0 +1,19 @@
+name: test-stateless-b200
+gpus_per_node: 8
+accelerators:
+  default: b200
+  profiles:
+    b200:
+      resource_name: nvidia.com/gpu
+      presence_label: nvidia.com/gpu.present
+      gpu_arch: b200
+      torch_cuda_arch_list: "10.0+PTX"
+storage:
+  local_nvme_path: null
+pod_defaults:
+  shm_size: 2Gi
+fabric:
+  ucx_net_devices: ""
+  default_profile: standard
+  profiles:
+    standard: {}

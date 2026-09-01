@@ -1,0 +1,38 @@
+image:
+  repository: example/nm-hard-tools
+  digest: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+auth:
+  existingSecret: ""
+  secretKey: token
+
+target:
+  namespace: default
+  # Optional explicit kubeconfig context. Leave empty for in-cluster identity.
+  kubeContext: ""
+  readinessTimeoutSeconds: 1800
+  # Complete operator-owned llm-manifesto cluster profile YAML.
+  clusterProfile: ""
+
+allowedOrigins: []
+
+serviceAccount:
+  create: true
+  name: ""
+
+rbac:
+  create: true
+
+service:
+  port: 8000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

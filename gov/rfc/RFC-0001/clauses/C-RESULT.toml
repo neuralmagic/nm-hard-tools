@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-RESULT"
+title = "Bounded result"
+kind = "normative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "A successful `deploy_model` call MUST return `isError: false` and `structuredContent` matching a closed JSON object with required properties: `schema_version`, the string constant `1`; `manifesto_digest`, the lowercase SHA-256 digest over the exact submitted `manifesto_config` UTF-8 bytes; `deployment_id`, a non-empty string no longer than 253 characters; `endpoint`, the exact absolute URI probed by the service, no longer than 2,048 characters; `ready`, the boolean constant true; `target_namespace`, a non-empty string no longer than 63 characters; and `resources`, an array of at most 64 closed objects. Each resource object MUST require string properties `api_version`, `kind`, and `name`, each from 1 through 253 characters. The result MUST NOT contain the submitted Manifesto configuration, rendered manifests, logs, credentials, or other unbounded content."

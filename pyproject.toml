@@ -20,10 +20,14 @@ test = [
   "pytest>=8,<10",
   "ruff>=0.12,<1",
 ]
+model-deployment = [
+  "llm-manifesto @ git+https://github.com/neuralmagic/llm-manifesto.git@229195038e506b67bc064bde9f36b6ca13ef5170",
+]
 
 [project.scripts]
 inference-hard-forward-benchmark-mcp = "nm_hard_tools.main:forward_benchmark_mcp"
 inference-hard-lm-eval-service = "nm_hard_tools.evaluation_service.api:main"
+nm-hard-model-deployment = "nm_hard_tools.model_deployment.api:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,0 +1,31 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-004"
+title = "Support explicit Manifesto workload controllers"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Advance the model-deployment service to the immutable Manifesto revision that accepts explicit per-role workload controllers, enabling caller intent to select a one-node LeaderWorkerSet while preserving operator-controlled rendering and deployment identity."
+
+[[content.acceptance_criteria]]
+text = "The pinned Manifesto schema accepts an explicit single-node LeaderWorkerSet role and renders that controller without weakening operator-controlled fields."
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "The frozen dependency lock and installed renderer provenance identify the exact upstream Manifesto feature commit."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Automated tests verify a caller Manifesto role can request and render a size-one LeaderWorkerSet."
+status = "done"
+category = "chore"
+
+[verification]
+required_guards = ["GUARD-GOVCTL-CHECK-PASSES"]

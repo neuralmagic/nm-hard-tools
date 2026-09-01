@@ -1,0 +1,29 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-005"
+title = "Keep Kueue LWS names label-safe"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Keep deterministic hard-tool LeaderWorkerSet resource names within the Kubernetes label limits used by Kueue admission so accepted single-node workloads can be ungated and scheduled."
+notes = ["The label-safe naming policy uses deployment identity domain v3 so upgrades never reinterpret an existing deployment ID as a different Kubernetes resource set."]
+
+[[content.acceptance_criteria]]
+text = "A rendered explicit single-node LeaderWorkerSet produces a Kueue Workload label value no longer than 63 characters."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Queue-managed LeaderWorkerSet names that cannot produce label-safe Kueue Workload names are rejected before cluster mutation."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Renderer tests and repository governance checks pass."
+status = "done"
+category = "chore"

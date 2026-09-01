@@ -1,0 +1,11 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-PURPOSE"
+title = "Purpose and scope"
+kind = "informative"
+status = "active"
+since = "0.1.0"
+
+[content]
+text = "This RFC defines a dedicated MCP service for the smallest useful model-deployment workflow: an authorized caller supplies one complete llm-manifesto model configuration and receives a ready inference endpoint. Deployment discovery, arbitrary Kubernetes manifests, cluster selection, status management, scaling, and deletion are outside this initial contract."

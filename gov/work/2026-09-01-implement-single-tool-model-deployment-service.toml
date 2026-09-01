@@ -1,0 +1,39 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-001"
+title = "Implement single-tool model deployment service"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001"]
+
+[content]
+description = "Add a deployable MCP service that renders a caller-supplied Manifesto model configuration inside an operator-controlled target context and safely creates one immutable model deployment, providing agents with a ready inference endpoint under [[RFC-0001]]."
+notes = ["The initial operator routing policy intentionally accepts aggregated topology only; disaggregated and routed topologies remain future governed scope."]
+
+[[content.acceptance_criteria]]
+text = "The service advertises only deploy_model with the [[RFC-0001]] closed Manifesto input, result, error, and annotation contract."
+status = "done"
+category = "added"
+
+[[content.acceptance_criteria]]
+text = "Manifesto rendering, operator target controls, authorization, ownership validation, concurrent idempotency, readiness, and endpoint probing conform to [[RFC-0001]]."
+status = "done"
+category = "added"
+
+[[content.acceptance_criteria]]
+text = "A deployable container image and Helm chart pin the Manifesto renderer and configure the target context and Kubernetes permissions without accepting caller infrastructure overrides."
+status = "done"
+category = "added"
+
+[[content.acceptance_criteria]]
+text = "Automated tests cover Manifesto validation, successful deployment, immutable retries, conflicts, readiness failures, dependency errors, and bounded MCP schemas."
+status = "done"
+category = "chore"
+
+[[content.acceptance_criteria]]
+text = "User documentation explains Manifesto input, operator target configuration, and service deployment."
+status = "done"
+category = "chore"

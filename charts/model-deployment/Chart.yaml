@@ -1,0 +1,6 @@
+apiVersion: v2
+name: model-deployment
+description: Single-tool llm-manifesto model deployment MCP service
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

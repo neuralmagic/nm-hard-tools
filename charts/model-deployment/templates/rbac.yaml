@@ -1,0 +1,40 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "model-deployment.fullname" . }}
+  namespace: {{ .Values.target.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps", "persistentvolumeclaims", "pods", "serviceaccounts", "services"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["leaderworkerset.x-k8s.io"]
+    resources: ["leaderworkersets"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways", "httproutes"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["inference.networking.x-k8s.io"]
+    resources: ["inferencepools", "endpointpickerconfigs"]
+    verbs: ["create", "get", "list", "watch"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["destinationrules"]
+    verbs: ["create", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "model-deployment.fullname" . }}
+  namespace: {{ .Values.target.namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "model-deployment.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "model-deployment.fullname" . }}
+{{- end }}
