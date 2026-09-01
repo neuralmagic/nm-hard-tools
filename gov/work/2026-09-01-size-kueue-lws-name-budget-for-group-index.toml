@@ -1,0 +1,36 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-008"
+title = "Size the Kueue LeaderWorkerSet name budget for the group index"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001", "RFC-0001:C-DEPLOYMENT", "WI-2026-09-01-006"]
+
+[content]
+description = "Derive the label-safe LeaderWorkerSet name limit from the replica count rather than a fixed 39 characters. Kueue names the Workload for group `i` `leaderworkerset-<name>-<i>-<hash>`, so a LeaderWorkerSet whose replica count reaches a two-digit group index needs a name one character shorter. The fixed limit accepted a 39-character name at any replica count, so `lws.replicas` of 11 or more reproduced the unschedulable-name failure WI-2026-09-01-006 was meant to close."
+notes = [
+    "`roles[N].lws.replicas` is caller-controlled and unbounded, so the gap was reachable through `deploy_model`: a 39-character name with 16 replicas rendered a 64-character Workload name for groups 10 through 15.",
+    "The failure is partial rather than total, which makes it harder to read on a cluster: groups 0 through 9 admit and ungate normally while the wider-indexed groups stay SchedulingGated, so the deployment never reaches full readiness and still blocks for the whole readiness timeout.",
+    "Upstream Kueue builds the name as `GetWorkloadNameForOwnerWithGVK(fmt.Sprintf(\"%s-%s\", name, groupIndex), uid, gvk)` with a five-character hash suffix, which is what fixes the overhead this limit subtracts.",
+]
+
+[[content.acceptance_criteria]]
+text = "The rendered LeaderWorkerSet name limit accounts for the widest group index the replica count reaches."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "A name that is label-safe at one replica but not at the rendered replica count is rejected before cluster mutation."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Renderer tests derive the budget from the Kueue Workload name format across single-, two-, and three-digit group indices rather than restating the renderer's constant."
+status = "done"
+category = "chore"
+
+[verification]
+required_guards = ["GUARD-GOVCTL-CHECK-PASSES"]

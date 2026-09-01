@@ -56,13 +56,14 @@ def renderer_for(tmp_path: Path, cluster_profile: Path) -> ManifestoRenderer:
     )
 
 
-def lws_source(role_name: str) -> str:
+def lws_source(role_name: str, *, replicas: int = 1) -> str:
     return (
         (FIXTURES / "model.yaml")
         .read_text()
         .replace(
-            "  - name: decode\n",
-            f"  - name: {role_name}\n    workload: leaderworkerset\n",
+            "  - name: decode\n    lws: {size: 1}\n",
+            f"  - name: {role_name}\n    workload: leaderworkerset\n"
+            f"    lws: {{size: 1, replicas: {replicas}}}\n",
         )
     )
 
@@ -238,6 +239,37 @@ def test_lws_name_is_label_safe_or_rejected_before_any_mutation(
 
     name = lws_name(renderer.render(lws_source(role_name)))
     assert len(name.encode()) == KUEUE_LWS_NAME_MAX + overshoot
+
+
+@pytest.mark.parametrize("replicas", [1, 10, 11, 101])
+def test_lws_name_budget_leaves_room_for_the_widest_group_index(
+    tmp_path: Path, replicas: int
+) -> None:
+    """More replicas widen the group index Kueue appends, so they cost budget.
+
+    Kueue names the Workload for group `i` `leaderworkerset-<name>-<i>-<hash>`,
+    so a LeaderWorkerSet that reaches a two-digit group index needs a name one
+    character shorter than a single-replica one. The budget here is derived from
+    that format rather than from the renderer, so an implementation that ignores
+    the replica count fails on the accepted case.
+    """
+
+    pytest.importorskip("manifesto")
+    renderer = renderer_for(tmp_path, operator_cluster_profile(tmp_path))
+    operator_prefix = len(lws_name(renderer.render(lws_source("d")))) - 1
+    widest_group_index = str(replicas - 1)
+    limit = 63 - len(f"leaderworkerset--{widest_group_index}-00000")
+
+    accepted = lws_name(
+        renderer.render(lws_source("d" * (limit - operator_prefix), replicas=replicas))
+    )
+
+    assert len(accepted.encode()) == limit
+    assert len(f"leaderworkerset-{accepted}-{widest_group_index}-00000".encode()) <= 63
+    with pytest.raises(ManifestoConfigError):
+        renderer.render(
+            lws_source("d" * (limit - operator_prefix + 1), replicas=replicas)
+        )
 
 
 def test_over_long_name_names_the_caller_field_that_can_be_shortened(
