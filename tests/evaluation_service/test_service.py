@@ -44,7 +44,10 @@ def test_plan_is_exact_bounded_and_side_effect_free(
     assert pod_spec["automountServiceAccountToken"] is False
     assert pod_spec["imagePullSecrets"] == [{"name": "registry-pull"}]
     assert pod_spec["nodeSelector"] == {"kubernetes.io/arch": "amd64"}
-    assert pod_spec["securityContext"]["fsGroup"] == 65532
+    assert pod_spec["securityContext"]["runAsNonRoot"] is True
+    assert "runAsUser" not in pod_spec["securityContext"]
+    assert "runAsGroup" not in pod_spec["securityContext"]
+    assert "fsGroup" not in pod_spec["securityContext"]
     env = {item["name"]: item for item in pod_spec["containers"][0]["env"]}
     assert env["HF_HOME"]["value"] == "/tmp/huggingface"
     assert env["HF_DATASETS_CACHE"]["value"] == "/tmp/huggingface/datasets"
@@ -81,6 +84,21 @@ def test_kueue_job_is_suspended_and_queue_is_part_of_plan_identity(
     assert job["metadata"]["labels"]["kueue.x-k8s.io/queue-name"] == ("h200-queue")
 
 
+def test_kueue_suspension_remains_pending_until_admission(
+    settings: ServiceSettings,
+    kube: FakeKubernetes,
+    request_body: dict[str, Any],
+) -> None:
+    queued_settings = settings.model_copy(update={"local_queue": "h200-queue"})
+    service = EvaluationService(queued_settings, kube)
+
+    submitted = service.submit(EvaluationRequest.model_validate(request_body))
+
+    assert kube.jobs[submitted.evaluation_id]["spec"]["suspend"] is True
+    assert submitted.state == "pending"
+    assert service.get(submitted.evaluation_id).state == "pending"
+
+
 def test_plan_identity_includes_resolved_operator_configuration(
     settings: ServiceSettings,
     kube: FakeKubernetes,
@@ -112,6 +130,37 @@ def test_plan_identity_includes_resolved_operator_configuration(
     fourth = EvaluationService(reprofiled, kube).plan(request)
     assert fourth.request_sha256 == first.request_sha256
     assert fourth.plan_sha256 != first.plan_sha256
+
+
+def test_idempotency_key_namespaces_identical_evaluations(
+    settings: ServiceSettings,
+    kube: FakeKubernetes,
+    request_body: dict[str, Any],
+) -> None:
+    service = EvaluationService(settings, kube)
+    first = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-bf16"}
+        )
+    )
+    retry = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-bf16"}
+        )
+    )
+    second_case = service.plan(
+        EvaluationRequest.model_validate(
+            {**request_body, "idempotency_key": "sweep-a:gemma-nvfp4"}
+        )
+    )
+
+    assert retry.evaluation_id == first.evaluation_id
+    assert second_case.evaluation_id != first.evaluation_id
+    assert second_case.request_sha256 != first.request_sha256
+    assert (
+        first.effective_configuration["lm_eval_invocation"]
+        == second_case.effective_configuration["lm_eval_invocation"]
+    )
 
 
 def test_profile_defaults_bounds_and_unknown_profile(

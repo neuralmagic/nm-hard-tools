@@ -37,6 +37,17 @@ class Seeds(StrictModel):
 class EvaluationRequest(StrictModel):
     target: StrictName
     model: Annotated[str, StringConstraints(min_length=1, max_length=256)]
+    idempotency_key: (
+        Annotated[
+            str,
+            StringConstraints(
+                min_length=1,
+                max_length=256,
+                pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            ),
+        ]
+        | None
+    ) = None
     profile: StrictName = "gsm8k"
     num_fewshot: int | None = Field(default=None, ge=0, le=32)
     limit: int | None = Field(default=None, ge=1, le=1_000_000)
