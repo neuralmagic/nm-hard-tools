@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import re
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,7 +19,7 @@ from nm_hard_tools.model_deployment.models import ResourceRef
 OWNER_ANNOTATION = "nm-hard-tools.neuralmagic.com/deployment-id"
 DIGEST_ANNOTATION = "nm-hard-tools.neuralmagic.com/desired-state-digest"
 MAX_YAML_NODES = 10_000
-MANIFESTO_REVISION = "ebb7932c63967d622cf8f7e8a8e7781c5214a779"
+IMMUTABLE_GIT_REVISION = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")
 ALLOWED_RESOURCE_KINDS = {
     "ConfigMap",
     "Deployment",
@@ -70,6 +71,30 @@ class ManifestoConfigError(ValueError):
 
 class OperatorConfigurationError(ValueError):
     pass
+
+
+def _installed_manifesto_identity() -> str:
+    distribution = importlib.metadata.distribution("llm-manifesto")
+    version = distribution.version
+    try:
+        direct_url = json.loads(distribution.read_text("direct_url.json") or "")
+        vcs_info = direct_url["vcs_info"]
+        revision = vcs_info["commit_id"]
+        requested_revision = vcs_info["requested_revision"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise OperatorConfigurationError(
+            "Installed Manifesto package lacks immutable VCS provenance"
+        ) from exc
+    if (
+        vcs_info.get("vcs") != "git"
+        or not isinstance(revision, str)
+        or IMMUTABLE_GIT_REVISION.fullmatch(revision) is None
+        or requested_revision != revision
+    ):
+        raise OperatorConfigurationError(
+            "Installed Manifesto package lacks immutable VCS provenance"
+        )
+    return f"{version}+{revision}"
 
 
 class _UniqueSafeLoader(yaml.SafeLoader):
@@ -179,8 +204,7 @@ class ManifestoRenderer:
         manifesto_digest = hashlib.sha256(source.encode("utf-8")).hexdigest()
         intent_digest = _intent_digest(parsed)
         try:
-            renderer_version = importlib.metadata.version("llm-manifesto")
-            pinned_renderer = f"{renderer_version}+{MANIFESTO_REVISION}"
+            pinned_renderer = _installed_manifesto_identity()
             context_id = self.settings.render_context_identity(pinned_renderer)
             cluster = self._load_cluster()
         except Exception as exc:

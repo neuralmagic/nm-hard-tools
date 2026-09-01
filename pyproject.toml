@@ -21,7 +21,7 @@ test = [
   "ruff>=0.12,<1",
 ]
 model-deployment = [
-  "llm-manifesto @ git+https://github.com/neuralmagic/llm-manifesto.git@ebb7932c63967d622cf8f7e8a8e7781c5214a779",
+  "llm-manifesto @ git+https://github.com/neuralmagic/llm-manifesto.git@1ba2eb87fe9bb2920d375522f424f758d949ee55",
 ]
 
 [project.scripts]
