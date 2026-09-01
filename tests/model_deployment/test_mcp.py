@@ -9,6 +9,7 @@ from nm_hard_tools.model_deployment.api import create_app
 from nm_hard_tools.model_deployment.config import DeploymentSettings
 from nm_hard_tools.model_deployment.models import ResourceRef
 from nm_hard_tools.model_deployment.renderer import (
+    ManifestoConfigError,
     RenderedDeployment,
     WorkloadExpectation,
 )
@@ -48,6 +49,13 @@ class Runtime:
         return None
 
 
+class UnschedulableNameRenderer:
+    def render(self, _source: str) -> RenderedDeployment:
+        raise ManifestoConfigError(
+            "rendered LeaderWorkerSet name is too long", field="roles[0].name"
+        )
+
+
 class FailingRuntime:
     def deploy(self, _rendered: RenderedDeployment, _timeout: int) -> None:
         raise RuntimeFailure(
@@ -55,7 +63,11 @@ class FailingRuntime:
         )
 
 
-def client(tmp_path: Path, runtime: DeploymentRuntime | None = None) -> TestClient:
+def client(
+    tmp_path: Path,
+    runtime: DeploymentRuntime | None = None,
+    renderer: object | None = None,
+) -> TestClient:
     cluster = tmp_path / "cluster.yaml"
     cluster.write_text("name: test\n")
     token = tmp_path / "token"
@@ -70,7 +82,7 @@ def client(tmp_path: Path, runtime: DeploymentRuntime | None = None) -> TestClie
         create_app(
             settings,
             runtime or Runtime(),
-            renderer=Renderer(),
+            renderer=renderer or Renderer(),
             bearer_token="secret",
         )
     )
@@ -169,6 +181,21 @@ def test_domain_errors_match_the_common_bounded_recovery_shape(tmp_path: Path) -
         "suggested_action": None,
         "deployment_id": None,
     }
+
+
+def test_render_rejection_points_at_the_caller_field_it_can_correct(
+    tmp_path: Path,
+) -> None:
+    response = request(
+        client(tmp_path, renderer=UnschedulableNameRenderer()),
+        "tools/call",
+        {"name": "deploy_model", "arguments": {"manifesto_config": "release: qwen"}},
+    )
+    error = response.json()["result"]["structuredContent"]
+    assert error["code"] == "INVALID_MANIFESTO_CONFIG"
+    assert error["retryable"] is False
+    assert error["deployment_id"] is None
+    assert [issue["field"] for issue in error["field_issues"]] == ["roles[0].name"]
 
 
 def test_retryable_post_acceptance_error_keeps_recovery_identity(

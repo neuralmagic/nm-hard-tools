@@ -17,6 +17,17 @@ The initial operator routing policy accepts aggregated topology and renders a
 direct vLLM service. Disaggregated and routed topologies are rejected before
 cluster mutation until their required RBAC and endpoint policy are defined.
 
+Kueue copies a LeaderWorkerSet name into a Workload name and then into a pod
+label value, so a rendered LeaderWorkerSet name longer than 39 characters is
+admitted by the API server but never associated with a Workload and never
+ungated. Rendering rejects such a name before creating anything, whether or not
+the cluster profile sets `kueue.local_queue`, because whether the namespace is
+queue managed is a property of the cluster rather than of the rendered object.
+A role name the caller can shorten fails as `INVALID_MANIFESTO_CONFIG` and
+names that field; a name the caller cannot shorten fails as
+`INVALID_OPERATOR_CONFIGURATION` and logs the rendered name, the limit, and the
+profile change that fixes it.
+
 ## Build and deploy
 
 Build the image for an explicit platform so `TARGETARCH` selects the matching

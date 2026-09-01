@@ -50,7 +50,7 @@ def deployment_tools(service: DeploymentService) -> list[McpTool]:
             if exc.code == "INVALID_MANIFESTO_CONFIG":
                 field_issues = [
                     FieldIssue(
-                        field="manifesto_config",
+                        field=exc.field or "manifesto_config",
                         code="INVALID_ARGUMENT",
                         message=str(exc),
                     )

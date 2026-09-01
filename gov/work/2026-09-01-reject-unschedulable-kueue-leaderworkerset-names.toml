@@ -1,0 +1,35 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-006"
+title = "Reject unschedulable Kueue LeaderWorkerSet names"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001", "RFC-0001:C-DEPLOYMENT", "RFC-0001:C-ERRORS", "WI-2026-09-01-005"]
+
+[content]
+description = "Validate every rendered LeaderWorkerSet name against the Kueue label-safe limit instead of only those whose rendered object already carries a queue-name label. Whether the target namespace is Kueue managed is a property of the cluster, not of the rendered object, so the previous gate skipped the check on profiles that leave kueue.local_queue unset and created pods that Kueue never associated with a Workload and never ungated."
+notes = [
+  "A live deployment created an over-long LeaderWorkerSet, left its pods SchedulingGated, and would have blocked the synchronous call for the full 7200-second readiness timeout instead of failing before mutation.",
+  "Failures are attributed from the rendered name: a caller field that can be shortened yields INVALID_MANIFESTO_CONFIG with that field named in field_issues, and an operator-derived prefix that overflows on its own yields INVALID_OPERATOR_CONFIGURATION.",
+]
+
+[[content.acceptance_criteria]]
+text = "A rendered LeaderWorkerSet name longer than the Kueue label-safe limit is rejected before cluster mutation whether or not the cluster profile configures a local queue."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "The rejection carries the error code matching whoever can correct it and names a caller-correctable field in field_issues when one exists."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "Renderer tests assert the label-safe invariant as a property over operator naming knobs and caller role names at the limit boundary."
+status = "done"
+category = "chore"
+
+[verification]
+required_guards = ["GUARD-GOVCTL-CHECK-PASSES"]
