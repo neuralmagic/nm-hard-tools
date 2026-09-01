@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-ARTIFACT-QUERY"
+title = "Bounded structured artifact queries"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes structured artifact queries, every supported query mode MUST be declarative, bounded, and discoverable. Its contract MUST describe accepted parameters, result shape, defaults, ordering, page or byte limits, scan or execution limits, and supported artifact kinds. Query inputs MUST NOT execute shell fragments, arbitrary code, or an unrestricted implementation-specific query language. The result MUST identify the artifact and digest or immutable version, normalized query, bounded data, completeness, and continuation when applicable. Exceeding a statically checkable bound MUST fail before expensive work with an actionable validation error; reaching a runtime bound MUST not return an unmarked partial result."

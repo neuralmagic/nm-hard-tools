@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-PURPOSE"
+title = "Purpose and caller model"
+kind = "informative"
+status = "active"
+
+[content]
+text = "This RFC defines cross-cutting usability and safety requirements for every MCP service in nm-hard-tools. The primary caller is an autonomous agent that must understand a tool from its advertised contract, make safe choices with limited context, recover from failure, and interpret results without repository or implementation knowledge. Domain RFCs remain responsible for each service's concrete goals, tool surface, payload format, and operational semantics."

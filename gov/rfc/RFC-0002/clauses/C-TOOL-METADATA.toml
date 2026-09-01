@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-TOOL-METADATA"
+title = "Tool selection metadata"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every tool MUST provide a stable name, title, description, input schema, output schema when it returns structured content, and truthful MCP annotations. An output schema MUST accept every structured success and tool-error variant the tool can return. A description MUST say when to use the tool, its material side effect or lack thereof, its principal prerequisite, and what the successful result enables. `readOnlyHint`, `destructiveHint`, `idempotentHint`, and `openWorldHint` MUST accurately describe observable behavior. Tools MUST be returned in deterministic name order."

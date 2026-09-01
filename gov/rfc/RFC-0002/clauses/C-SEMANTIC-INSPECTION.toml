@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SEMANTIC-INSPECTION"
+title = "Semantic result inspection"
+kind = "normative"
+status = "active"
+
+[content]
+text = "A semantic inspection tool MUST accept a stable domain result or operation reference plus a discoverable view or question selector. It MUST validate view parameters against the advertised contract. A successful result MUST identify the subject, selected view, snapshot or observation time, bounded data, evidence completeness, and source artifacts or domain evidence when available. A request made before evidence can exist MUST return a distinguishable not-ready error; an applicable view with no matching evidence MUST return a valid empty result. Read-only inspection MUST be annotated accordingly."

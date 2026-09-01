@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-RESULT-REPRESENTATION"
+title = "Token-efficient structured results"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every returned `structuredContent` value MUST conform to the tool's advertised output schema. Successful and error results MUST be distinguishable by the MCP `isError` value and by non-overlapping schema variants when both are structured. Text content MUST be a concise caller-facing summary and SHOULD NOT duplicate the complete structured result for protocol version `2026-07-28`. Versioned domain results MUST include a schema version. Timestamps, byte counts, durations, rates, units, and identifiers MUST have unambiguous representations."

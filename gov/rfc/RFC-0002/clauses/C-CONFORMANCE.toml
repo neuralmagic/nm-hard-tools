@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-CONFORMANCE"
+title = "Agent-journey conformance"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Each service MUST maintain automated conformance coverage selected from the capabilities it advertises. Every service MUST cover discovery or self-description, valid invocation, unknown input rejection, truthful annotations, bounded success, a bounded domain failure, authorization behavior when configured, idempotency when claimed, and result-schema conformance. When a tool advertises or returns structured domain errors, tests MUST validate those errors against the advertised output schema. A configuration-document tool that advertises `idempotentHint: true` or whose domain RFC requires convergence MUST test exact-byte digest behavior separately from semantic identity, including formatting-equivalent documents under the same operator identity context. Every configuration-document tool MUST additionally cover safe parsing, bounds, schema rejection, and redaction. A lifecycle service MUST cover nonmutating planning when exposed, retry convergence, resumption, terminal-state behavior, and cancellation when exposed. Listing and inspection capabilities MUST cover pagination recovery and provenance; comparison capabilities MUST cover alignment, units, missing values, and incompatibility."

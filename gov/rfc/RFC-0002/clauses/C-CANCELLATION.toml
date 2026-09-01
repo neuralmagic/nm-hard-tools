@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-CANCELLATION"
+title = "Safe cancellation semantics"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes cancellation, cancellation MUST be idempotent and MUST preserve enough operation identity and outcome information for later inspection. Cancelling terminal work MUST return its current status without changing it. Cancelling active work MUST distinguish requested, in-progress, and durable cancellation rather than claiming completion prematurely. A cancellation tool MUST set `destructiveHint` to true because it stops intended work."

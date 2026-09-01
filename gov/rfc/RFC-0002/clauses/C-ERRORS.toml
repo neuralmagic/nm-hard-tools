@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-ERRORS"
+title = "Actionable stable errors"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Invalid MCP envelopes, authentication or authorization failures before invocation, unknown tools, unsupported methods, and protocol negotiation failures MUST use protocol-level errors. A recognized tool domain failure MUST return `isError: true`; when structured, its error object MUST conform to the advertised output schema and include stable `code`, concise `message`, and `retryable`. Validation errors SHOULD identify semantic field or document locations and violated constraints. Retryable errors SHOULD include retry timing when known. State conflicts and recoverable failures SHOULD include a safe suggested action when one exists. Domain RFCs own their error-code vocabulary and MAY require additional identity or acceptance fields. Errors MUST NOT expose credentials, submitted configuration documents, stack traces, internal network locations, or unbounded dependency output."

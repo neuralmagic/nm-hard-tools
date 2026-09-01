@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-AUTHORIZATION"
+title = "Authorization and open-world safety"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Servers MUST authenticate and authorize requests before parsing sensitive domain payloads when authentication is configured. Tool results and discovery MUST reveal only choices, operations, and artifacts authorized for the caller. The service MUST keep credentials, target environments, namespaces, deployment identity, storage roots, and other operator controls outside caller input unless a domain RFC explicitly delegates a bounded choice. A tool MUST set `openWorldHint` to true when caller input can cause interaction with externally selected or non-local destinations and false otherwise."

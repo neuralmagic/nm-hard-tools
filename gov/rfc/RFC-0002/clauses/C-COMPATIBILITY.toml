@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-COMPATIBILITY"
+title = "Compatibility and evolution"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Published tool names, required input fields, payload meanings, identifier meanings, error-code meanings, and structured output fields MUST remain backward compatible within a service major version. Additive optional fields MAY be introduced within a major version. Adding or changing a closed output value is breaking unless unknown-value handling was part of the original contract. Configuration-document schema authority and versioning MUST be advertised or pinned so callers can distinguish compatible inputs. A breaking change MUST use a new major version or tool name and provide a documented migration path."

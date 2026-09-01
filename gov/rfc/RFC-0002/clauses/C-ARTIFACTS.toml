@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-ARTIFACTS"
+title = "Artifact-oriented detail access"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes artifacts, it MUST identify them with stable authorized references and bounded metadata sufficient to choose a follow-up action. Metadata SHOULD include semantic kind, media type, byte size, digest, schema identity when structured, creation or modification time, retention information, and supported inspection or retrieval actions when applicable. Services SHOULD return semantic summaries before raw bulky content. Artifact access MUST preserve authorization, MUST NOT expose credentials or private storage paths, and MUST distinguish expired references from invalid requests without leaking unauthorized existence."

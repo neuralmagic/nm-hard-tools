@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-LIST"
+title = "Bounded resumable listing"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes operation or result listing, each response MUST be bounded and deterministically ordered. A listing that can exceed one response MUST use opaque cursor pagination over a stable traversal snapshot or another documented consistency mechanism that prevents gaps and duplicates. The result MUST state whether more items exist and provide a continuation when they do. Invalid or expired continuation state MUST produce an actionable tool error that lets the caller restart safely."

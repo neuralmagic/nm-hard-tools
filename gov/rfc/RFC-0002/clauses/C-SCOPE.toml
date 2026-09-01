@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SCOPE"
+title = "Scope and non-goals"
+kind = "informative"
+status = "active"
+
+[content]
+text = "This RFC governs MCP discovery, tool metadata, input ergonomics, configuration-document handling, results, errors, safety, compatibility, and capability-appropriate inspection across all nm-hard-tools MCP services. It permits both single-tool direct-action services and multi-tool lifecycle services. It does not require every service to expose planning, asynchronous status, cancellation, listings, artifacts, inspection, or comparison. This RFC does not prescribe private types, Kubernetes layouts, REST routes, storage engines, deployment topology, or implementation language."

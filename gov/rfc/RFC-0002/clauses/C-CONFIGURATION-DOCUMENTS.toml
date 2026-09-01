@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-CONFIGURATION-DOCUMENTS"
+title = "Agent-usable configuration documents"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Metadata for a primary configuration-document field MUST appear in its input-property description or in a stable descriptor referenced from tool metadata or server instructions and retrievable before invocation. That metadata MUST declare the document media type or language, maximum UTF-8 byte size, document-count limit, schema authority or pinned consumer version, and handling of aliases, duplicate keys, custom tags, inheritance, and unknown fields. Parsing MUST be safe and resource-bounded by depth, expanded nodes, execution time, or equivalent limits appropriate to the format. Validation MUST occur before external mutation. Rejections SHOULD identify a semantic path and source line or column when safely available. The service MUST distinguish a digest of exact submitted bytes from any identity derived from the accepted semantic form. Holding the schema or pinned consumer version and every domain-declared operator-controlled identity input constant, documents whose accepted semantic forms differ only in formatting MUST derive the same semantic identity when the service claims idempotent convergence. A domain RFC MUST define ignored or overridden document fields and any operator-controlled inputs included in that identity. Planning or success results SHOULD expose a bounded canonical summary, resolved defaults, stable identity, or digest sufficient to confirm what the service accepted without echoing the complete document. A service MUST NOT require a reduced structured alternative that cannot represent every configuration accepted by the authoritative schema."

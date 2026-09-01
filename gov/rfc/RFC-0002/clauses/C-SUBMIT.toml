@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-SUBMIT"
+title = "Plan-bound idempotent submission"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When execution is separated from planning, the execution tool MUST accept an opaque reference to the exact plan and MUST NOT require the caller to repeat the planned payload. The first successful execution of a plan reference MUST bind it atomically to one domain operation or result. Concurrent and later authorized retries MUST return or reconcile that same operation or result. Expiry and feasibility checks apply only before the first successful binding. A direct-action tool MUST derive a stable semantic identity when it advertises `idempotentHint: true` or its domain RFC requires retries or equivalent concurrent calls to converge. The domain RFC MUST define the semantic input and operator-controlled identity context. Repeated equivalent calls under the same identity context MUST reconcile one logical operation or result."

@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-RESULT-COMPARISON"
+title = "Cross-operation comparison"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes comparison, the input MUST identify the compared results and an explicit baseline or another unambiguous comparison relation. The comparison contract MUST define compatibility fields, alignment keys or aggregation, comparable measures, units, missing-value behavior, and any absolute, relative, improvement, or regression semantics. Required incompatibility MUST fail with per-result diagnostics. Report-only differences MUST remain visible. Large comparisons MUST be bounded and resumable or expose a bounded projection."

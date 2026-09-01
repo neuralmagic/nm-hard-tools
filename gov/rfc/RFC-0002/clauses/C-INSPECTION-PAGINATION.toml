@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INSPECTION-PAGINATION"
+title = "Stable inspection pagination"
+kind = "normative"
+status = "active"
+
+[content]
+text = "An inspection, artifact query, or comparison whose result can exceed one response MUST provide deterministic bounded traversal. Opaque cursor pagination SHOULD let a continuation call pass only the cursor rather than repeat the original query. A cursor MUST preserve the original subject, authorization scope, query, schemas, ordering, and page size. Invalid or expired cursors MUST fail safely and SHOULD provide a restart action that does not include sensitive input."

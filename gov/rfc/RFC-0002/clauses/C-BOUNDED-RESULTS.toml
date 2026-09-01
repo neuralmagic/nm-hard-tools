@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-BOUNDED-RESULTS"
+title = "Progressive disclosure and result bounds"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every tool result MUST be bounded by an advertised or domain-governed limit. A service SHOULD return a useful summary, pagination, a narrower follow-up action, or an artifact reference instead of only an oversize error when a bounded representation is available. Results MUST state when matching evidence is omitted, sampled, approximate, stale, or otherwise incomplete and MUST explain the limitation. Pagination state MUST be distinct from evidence completeness."

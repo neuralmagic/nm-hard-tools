@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-INSPECTION-DISCOVERY"
+title = "Discoverable inspection views"
+kind = "normative"
+status = "active"
+
+[content]
+text = "When a service exposes multiple semantic result views, it MUST make supported views discoverable through tool metadata, a bounded capability result, or an MCP resource. Each view descriptor MUST identify its stable name, purpose, applicable result states or kinds, accepted parameters, returned data shape, result bounds, and whether data is live, immutable, comparable, sampled, or approximate. Schemas MAY be embedded or referenced through a stable authorized MCP resource. Domain RFCs own view identifiers, measures, alignment keys, units, and compatibility rules."

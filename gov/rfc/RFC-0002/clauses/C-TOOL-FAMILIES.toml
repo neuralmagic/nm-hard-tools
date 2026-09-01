@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-TOOL-FAMILIES"
+title = "Common tool families"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Tool names MUST use verb-first snake_case and describe complete caller goals in domain language. Related tools MUST use consistent nouns and identifiers. A direct-action service MAY expose a single tool when one bounded call can validate, execute, and return the useful outcome. A service that exposes separate discovery, planning, execution, status, cancellation, artifact, inspection, or comparison operations MUST make their sequence and shared identifiers evident from tool names, descriptions, and results. Domain RFCs own exact tool names and cardinality."
