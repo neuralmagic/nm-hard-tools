@@ -148,17 +148,25 @@ def test_model_deployment_service_only_selects_its_own_release() -> None:
     of the chart in the namespace, so a caller can reach a controller carrying a
     different operator-controlled ``target.clusterProfile``.
     """
-    selectors = {}
-    for release in ("rel-a", "rel-b"):
+    rendered = {}
+    # "on" is a valid Helm release name that YAML parses as a boolean unless the
+    # label value is quoted, which would render an invalid label.
+    for release in ("rel-a", "rel-b", "on"):
         documents = render(
             "model-deployment", *MODEL_DEPLOYMENT_VALUES, release=release
         )
         service = next(item for item in documents if item["kind"] == "Service")
         deployment = next(item for item in documents if item["kind"] == "Deployment")
         selector = service["spec"]["selector"]
-        assert selector["app.kubernetes.io/instance"] == release
+        pod_labels = deployment["spec"]["template"]["metadata"]["labels"]
         assert deployment["spec"]["selector"]["matchLabels"] == selector
-        assert deployment["spec"]["template"]["metadata"]["labels"] == selector
-        selectors[release] = selector
+        assert pod_labels == selector
+        rendered[release] = (selector, pod_labels)
 
-    assert selectors["rel-a"] != selectors["rel-b"]
+    for release, (selector, _) in rendered.items():
+        for other, (_, pod_labels) in rendered.items():
+            fronts_other = selector.items() <= pod_labels.items()
+            assert fronts_other == (release == other), (
+                f"Service selector of {release} matches {other} pods"
+            )
+        assert selector["app.kubernetes.io/instance"] == release

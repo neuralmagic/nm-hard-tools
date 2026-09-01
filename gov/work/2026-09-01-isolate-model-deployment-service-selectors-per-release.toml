@@ -13,7 +13,8 @@ refs = ["RFC-0001"]
 description = "Scope the model-deployment chart Service and Deployment label selectors to a single Helm release so co-located releases in one namespace cannot front each other's controllers and serve a caller with a different operator-controlled render context."
 notes = [
     "Observed live in namespace tms: two releases selected on app.kubernetes.io/name alone, the a100 Service listed both controller endpoints, and a deploy_model call addressed to it rendered with the other release's B200 cluster profile.",
-    "The Deployment spec.selector.matchLabels is immutable, so an existing release must be reinstalled rather than upgraded in place.",
+    "The Deployment spec.selector.matchLabels is immutable, so an existing release needs its controller Deployment deleted before helm upgrade recreates it with the release-scoped selector; uninstalling the release is not required and would discard operator-supplied values.",
+    "Sibling charts hardcode their workload names, so two releases of them cannot coexist in one namespace and they are not exposed to this hazard; lm-eval-service already scopes its selectors by release.",
 ]
 
 [[content.acceptance_criteria]]
