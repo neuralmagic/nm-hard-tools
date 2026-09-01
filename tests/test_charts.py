@@ -11,9 +11,9 @@ ROOT = Path(__file__).parents[1]
 pytestmark = pytest.mark.skipif(shutil.which("helm") is None, reason="helm unavailable")
 
 
-def render(chart: str, *values: str) -> list[dict]:
+def render(chart: str, *values: str, release: str | None = None) -> list[dict]:
     result = subprocess.run(
-        ["helm", "template", chart, str(ROOT / "charts" / chart), *values],
+        ["helm", "template", release or chart, str(ROOT / "charts" / chart), *values],
         check=True,
         capture_output=True,
         text=True,
@@ -118,15 +118,17 @@ def test_charts_support_operator_owned_rbac(
     assert not any(item["kind"] in {"Role", "RoleBinding"} for item in documents)
 
 
+MODEL_DEPLOYMENT_VALUES = (
+    "--set=image.repository=example/model-deployment",
+    "--set=image.digest=sha256:" + "a" * 64,
+    "--set=auth.existingSecret=model-deployment-token",
+    "--set=target.namespace=models",
+    "--set-string=target.clusterProfile=name: test",
+)
+
+
 def test_model_deployment_chart_pins_image_and_keeps_target_operator_owned() -> None:
-    documents = render(
-        "model-deployment",
-        "--set=image.repository=example/model-deployment",
-        "--set=image.digest=sha256:" + "a" * 64,
-        "--set=auth.existingSecret=model-deployment-token",
-        "--set=target.namespace=models",
-        "--set-string=target.clusterProfile=name: test",
-    )
+    documents = render("model-deployment", *MODEL_DEPLOYMENT_VALUES)
     deployment = next(item for item in documents if item["kind"] == "Deployment")
     container = deployment["spec"]["template"]["spec"]["containers"][0]
     assert container["image"] == "example/model-deployment@sha256:" + "a" * 64
@@ -137,3 +139,26 @@ def test_model_deployment_chart_pins_image_and_keeps_target_operator_owned() -> 
     ]
     assert 'namespace: "models"' in settings
     assert "cluster_profile: /etc/nm-hard-tools/cluster-profile.yaml" in settings
+
+
+def test_model_deployment_service_only_selects_its_own_release() -> None:
+    """Two releases in one namespace must not cross-select each other's pods.
+
+    A Service selecting on ``app.kubernetes.io/name`` alone fronts every release
+    of the chart in the namespace, so a caller can reach a controller carrying a
+    different operator-controlled ``target.clusterProfile``.
+    """
+    selectors = {}
+    for release in ("rel-a", "rel-b"):
+        documents = render(
+            "model-deployment", *MODEL_DEPLOYMENT_VALUES, release=release
+        )
+        service = next(item for item in documents if item["kind"] == "Service")
+        deployment = next(item for item in documents if item["kind"] == "Deployment")
+        selector = service["spec"]["selector"]
+        assert selector["app.kubernetes.io/instance"] == release
+        assert deployment["spec"]["selector"]["matchLabels"] == selector
+        assert deployment["spec"]["template"]["metadata"]["labels"] == selector
+        selectors[release] = selector
+
+    assert selectors["rel-a"] != selectors["rel-b"]

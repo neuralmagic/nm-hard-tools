@@ -49,6 +49,16 @@ The chart creates a Role in `target.namespace` and binds it to the controller
 ServiceAccount. Set `rbac.create=false` and provide equivalent operator-owned
 permissions when the generated resource allowlist is unsuitable.
 
+Workload labels are scoped by Helm release name, so several releases with
+different cluster profiles can share a namespace and each Service reaches only
+its own controller. `spec.selector` on a Deployment is immutable, so a release
+installed before this scoping was added must be replaced rather than upgraded:
+
+```bash
+helm uninstall <release> --namespace hard-tools
+helm upgrade --install <release> charts/model-deployment ...
+```
+
 ## MCP call
 
 `POST /mcp` requires `Authorization: Bearer <token>` before the request body is

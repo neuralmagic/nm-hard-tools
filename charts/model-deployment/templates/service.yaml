@@ -4,7 +4,7 @@ metadata:
   name: {{ include "model-deployment.fullname" . }}
 spec:
   selector:
-    app.kubernetes.io/name: {{ include "model-deployment.name" . }}
+    {{- include "model-deployment.selectorLabels" . | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.service.port }}
