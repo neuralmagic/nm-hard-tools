@@ -7,4 +7,4 @@ kind = "informative"
 status = "active"
 
 [content]
-text = "This RFC defines the public contract for MCP services in nm-hard-tools. The primary caller is an autonomous agent that must discover operator-approved capabilities, make safe choices with limited context, resume asynchronous work, and interpret results without repository knowledge. The contract favors a small predictable tool vocabulary, structured data, explicit side effects, and useful recovery information."
+text = "This RFC defines cross-cutting usability and safety requirements for every MCP service in nm-hard-tools. The primary caller is an autonomous agent that must understand a tool from its advertised contract, make safe choices with limited context, recover from failure, and interpret results without repository or implementation knowledge. Domain RFCs remain responsible for each service's concrete goals, tool surface, payload format, and operational semantics."

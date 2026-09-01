@@ -7,4 +7,4 @@ kind = "informative"
 status = "active"
 
 [content]
-text = "Agents normally ask semantic questions such as which metric regressed, why an operation failed, or which configuration produced a result. Artifact filenames and serialization formats are storage concerns, not the primary agent interface. Services therefore expose semantic result views first, bounded structured artifact queries second, and raw resource access as an escape hatch. This preserves a consistent workflow while allowing domain-specific evidence."
+text = "When a service produces complex results or artifacts, agents should normally inspect semantic questions such as outcome, metrics, failure, configuration, or provenance rather than storage filenames and serialization details. A service may provide semantic result views, bounded structured artifact queries, raw resource access, or only a bounded final result according to domain need. The inspection surface should expose the least detail needed first and retain a path to exact evidence when that evidence exists."

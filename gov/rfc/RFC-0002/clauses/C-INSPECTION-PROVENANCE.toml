@@ -7,4 +7,4 @@ kind = "normative"
 status = "active"
 
 [content]
-text = "Every semantic inspection and comparison result MUST identify the operation configuration digest, source artifact references and digests, result or view schema version, query parameters after defaults, and snapshot time. Derived, sampled, or approximate values MUST identify the derivation method and source fields. A service-generated summary MUST be deterministic from the returned evidence and MUST distinguish observed values from derived values. The service MUST NOT present an unsupported causal explanation as artifact evidence."
+text = "Every derived inspection or comparison result MUST identify its subject identities, source artifact or result versions when available, schema or interpretation version, effective query parameters, and snapshot time. Derived, sampled, approximate, or incomplete values MUST identify the method and source fields or evidence needed to interpret them. Service-generated summaries MUST distinguish observed facts from derived values and MUST NOT present unsupported causal explanations as evidence."

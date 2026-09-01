@@ -7,4 +7,4 @@ kind = "normative"
 status = "active"
 
 [content]
-text = "`cancel_<domain>` MUST be idempotent and MUST preserve the operation record and completed artifacts. Cancelling a terminal operation MUST return its current status without changing it. Cancelling an active operation MUST return the resulting or transitional status and MUST NOT claim completion before cancellation is durable. The tool MUST be annotated as destructive because it stops intended work, even though the operation record is retained."
+text = "When a service exposes cancellation, cancellation MUST be idempotent and MUST preserve enough operation identity and outcome information for later inspection. Cancelling terminal work MUST return its current status without changing it. Cancelling active work MUST distinguish requested, in-progress, and durable cancellation rather than claiming completion prematurely. A cancellation tool MUST set `destructiveHint` to true because it stops intended work."

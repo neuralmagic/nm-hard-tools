@@ -1,0 +1,10 @@
+#:schema ../../../schema/clause.schema.json
+
+[govctl]
+id = "C-AUTHORITY"
+title = "Umbrella and domain authority"
+kind = "normative"
+status = "active"
+
+[content]
+text = "Every nm-hard-tools MCP service MUST satisfy the applicable cross-cutting obligations of this RFC. Domain RFCs own concrete service goals, tool names and cardinality, payload and result schemas, operational semantics, and domain error codes. A domain RFC MAY strengthen this RFC but MUST NOT silently weaken an applicable obligation. An incompatibility MUST be resolved by amending the governing RFCs rather than by implicit precedence."

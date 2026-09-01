@@ -7,4 +7,4 @@ kind = "normative"
 status = "active"
 
 [content]
-text = "Each MCP server MUST represent one coherent operator-owned domain and MUST identify that domain in its advertised server name and instructions. A server MUST expose only capabilities that share an authorization and operational boundary. The evaluation and forward-benchmark domains MAY remain separate servers, but both MUST implement the common lifecycle and representation rules in this RFC. A server MUST NOT expose an internal REST operation solely because that operation exists."
+text = "Each MCP server MUST represent a coherent operator-owned domain and MUST identify that domain in its advertised server name and instructions. A server MUST expose the smallest tool surface that completes its supported caller goals within one authorization and operational boundary. A service MAY expose one direct-action tool, a lifecycle-oriented family, or another domain-appropriate surface. A server MUST NOT expose an internal route or operation solely because it exists, and a caller MUST NOT need knowledge of controllers, Jobs, filenames, or storage layout to choose a tool."

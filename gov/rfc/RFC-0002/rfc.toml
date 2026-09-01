@@ -19,12 +19,14 @@ clauses = [
 [[sections]]
 title = "Specification"
 clauses = [
+    "clauses/C-AUTHORITY.toml",
     "clauses/C-SERVICE-BOUNDARIES.toml",
     "clauses/C-PROTOCOL-DISCOVERY.toml",
     "clauses/C-TOOL-FAMILIES.toml",
     "clauses/C-CAPABILITY-CATALOG.toml",
     "clauses/C-TOOL-METADATA.toml",
     "clauses/C-INPUT-SCHEMAS.toml",
+    "clauses/C-CONFIGURATION-DOCUMENTS.toml",
     "clauses/C-PLAN.toml",
     "clauses/C-SUBMIT.toml",
     "clauses/C-OPERATION-STATUS.toml",
