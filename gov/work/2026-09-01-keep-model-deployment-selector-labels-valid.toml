@@ -1,0 +1,32 @@
+#:schema ../schema/work.schema.json
+
+[govctl]
+id = "WI-2026-09-01-007"
+title = "Keep model deployment selector labels valid and upgradable"
+status = "done"
+created = "2026-09-01"
+started = "2026-09-01"
+completed = "2026-09-01"
+refs = ["RFC-0001", "WI-2026-09-01-006"]
+
+[content]
+description = "Follow up on the release-scoped model-deployment selector by rendering label values as strings, asserting the cross-release selection property the bug actually had, and documenting a migration that does not discard operator-supplied release values."
+notes = [
+    "Helm release names may be `on`, `no`, `y` or all digits; unquoted those render as YAML booleans or integers and the API server rejects the label.",
+    "Only the Deployment carries the immutable spec.selector, so deleting that one resource before helm upgrade is sufficient and preserves the Service ClusterIP, ConfigMap, ServiceAccount, RBAC and release history.",
+]
+
+[[content.acceptance_criteria]]
+text = "Selector label values render as quoted strings so YAML-ambiguous release names stay valid Kubernetes labels."
+status = "done"
+category = "fixed"
+
+[[content.acceptance_criteria]]
+text = "The chart test fails on a Service selector matching another release's pod labels rather than on a missing label key."
+status = "done"
+category = "changed"
+
+[[content.acceptance_criteria]]
+text = "Operator documentation describes a migration that replaces only the controller Deployment."
+status = "done"
+category = "fixed"
